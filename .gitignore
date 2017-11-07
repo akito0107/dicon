@@ -15,6 +15,7 @@
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
 
+vendor
 
 ### https://raw.github.com/github/gitignore/982268df04842c9b34b7bdb0c4b0696b7db6e6fd/IntelliJ.gitignore
 
@@ -88,4 +89,5 @@ fabric.properties
 
 # End of https://www.gitignore.io/api/intellij
 
-
+sample/dicon_gen.go
+bin/dicon
