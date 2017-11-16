@@ -18,8 +18,8 @@ $ go get -u github.com/akito0107/dicon
 ```.go
 // +DICON
 type Container interface {
-    UserService() UserService()
-    UserReposiotry() UserRepository()
+    UserService() UserService
+    UserReposiotry() UserRepository
 }
 ```
 2. Prepare dependencies. You must write constructor which meets below requirements:
@@ -34,7 +34,7 @@ type userService struct {
     repo UserRepository
 }
 
-func NewUserService(repo UserRepotiroy) {
+func NewUserService(repo UserRepotiroy) UserService {
     return &userService{
         repo: repo,
     }
@@ -46,7 +46,7 @@ type UserRepository interface {}
 
 type userRepository struct {}
 
-func NewUserRepository() {
+func NewUserRepository() UserRepository {
     return &userRepository{}
 }
 ```
