@@ -1,9 +1,6 @@
 package internal
 
-import (
-	"strings"
-	"testing"
-)
+import "testing"
 
 var TEST_FILE1 = `
 package main
@@ -26,10 +23,10 @@ func TestParse(t *testing.T) {
 		t.Error(e)
 	}
 
-	if len(*its) != 1 {
-		t.Errorf("must 1 interface but %d\n", len(*its))
+	if len(its) != 1 {
+		t.Errorf("must 1 interface but %d\n", len(its))
 	}
-	funcs := (*its)[0].Funcs
+	funcs := its[0].Funcs
 	if len(funcs) != 2 {
 		t.Errorf("must 2 functions but %d\n", len(funcs))
 	}
@@ -37,9 +34,9 @@ func TestParse(t *testing.T) {
 
 func TestParseWithFuncNames(t *testing.T) {
 	its, _ := findDicon("/tmp/tmp.go", TEST_FILE1, "+DICON")
-	for _, it := range *its {
+	for _, it := range its {
 		for _, f := range it.Funcs {
-			if strings.Compare(f.Name, "Exec") != 0 && strings.Compare(f.Name, "Exec2") != 0 {
+			if f.Name != "Exec" && f.Name != "Exec2" {
 				t.Errorf("function name must be Exec, but : %s", f.Name)
 			}
 		}
@@ -48,10 +45,10 @@ func TestParseWithFuncNames(t *testing.T) {
 
 func TestParseWithFuncParameters(t *testing.T) {
 	its, _ := findDicon("/tmp/tmp.go", TEST_FILE1, "+DICON")
-	for _, it := range *its {
+	for _, it := range its {
 		f := it.Funcs[0]
-		if strings.Compare(f.Name, "Exec2") == 0 {
-			if strings.Compare(f.ArgumentTypes[0].Type, "int") != 0 {
+		if f.Name == "Exec2" {
+			if f.ArgumentTypes[0].Type != "int" {
 				t.Errorf("argument type must be int, but : %s", f.Name)
 			}
 		}
@@ -60,16 +57,16 @@ func TestParseWithFuncParameters(t *testing.T) {
 
 func TestParseWithReturnParameters(t *testing.T) {
 	its, _ := findDicon("/tmp/tmp.go", TEST_FILE1, "+DICON")
-	for _, it := range *its {
+	for _, it := range its {
 		f := it.Funcs[0]
-		if strings.Compare(f.Name, "Exec") == 0 {
-			if strings.Compare(f.ReturnTypes[0].Type, "error") != 0 {
-				t.Errorf("return type must be error, but : %s", f.ReturnTypes[0].Type)
+		if f.Name == "Exec" {
+			if got := f.ReturnTypes[0].Type; got != "error" {
+				t.Errorf("return type must be error, but : %s", got)
 			}
 		}
-		if strings.Compare(f.Name, "Exec2") == 0 {
-			if strings.Compare(f.ReturnTypes[0].Type, "string") != 0 {
-				t.Errorf("return type must be string, but : %s", f.ReturnTypes[0].Type)
+		if f.Name == "Exec2" {
+			if got := f.ReturnTypes[0].Type; got != "string" {
+				t.Errorf("return type must be string, but : %s", got)
 			}
 		}
 	}
@@ -118,26 +115,26 @@ func (s *sampleComponent) Exec() error {
 `
 
 func TestPackageParser_FindConstructors(t *testing.T) {
-	fs, _ := findConstructors("test", "/tmp/tmp.go", TEST_COMPONENT, &[]string{"SampleComponent"})
-	if len(*fs) != 1 {
-		t.Errorf("must be 1")
+	fs, _ := findConstructors("test", "/tmp/tmp.go", TEST_COMPONENT, []string{"SampleComponent"})
+	if len(fs) != 1 {
+		t.Fatalf("must be 1")
 	}
 
-	fun := (*fs)[0]
+	fun := fs[0]
 
-	if len(fun.ReturnTypes) != 1 || strings.Compare(fun.ReturnTypes[0].Type, "SampleComponent") != 0 {
+	if len(fun.ReturnTypes) != 1 || fun.ReturnTypes[0].Type != "SampleComponent" {
 		t.Errorf("return type: %v wrong", fun.ReturnTypes)
 	}
 
-	if len(fun.ArgumentTypes) != 1 || strings.Compare(fun.ArgumentTypes[0].Type, "Dependency") != 0 {
+	if len(fun.ArgumentTypes) != 1 || fun.ArgumentTypes[0].Type != "Dependency" {
 		t.Errorf("arg type: %v wrong", fun.ArgumentTypes)
 	}
 
-	if strings.Compare(fun.Name, "SampleComponent") != 0 {
+	if fun.Name != "SampleComponent" {
 		t.Errorf("func name is SampleComponent but %s", fun.Name)
 	}
 
-	if strings.Compare(fun.PackageName, "test") != 0 {
+	if fun.PackageName != "test" {
 		t.Errorf("package name is test but %s", fun.PackageName)
 	}
 }

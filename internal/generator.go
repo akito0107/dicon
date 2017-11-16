@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"golang.org/x/tools/imports"
+	"io"
 )
 
 type Generator struct {
@@ -22,7 +23,7 @@ func (g *Generator) Printf(format string, args ...interface{}) {
 	fmt.Fprintf(&g.buf, format, args...)
 }
 
-func (g *Generator) Generate(it *InterfaceType, fs *[]FuncType) error {
+func (g *Generator) Generate(it *InterfaceType, fs []FuncType) error {
 	g.PackageName = it.PackageName
 	g.appendHeader(it)
 	g.appendStructDefs(it)
@@ -30,12 +31,15 @@ func (g *Generator) Generate(it *InterfaceType, fs *[]FuncType) error {
 	return nil
 }
 
-func (g *Generator) Out() (*[]byte, error) {
-	dist, err := imports.Process("/tmp/tmp.go", g.buf.Bytes(), &imports.Options{Comments: true})
+func (g *Generator) Out(w io.Writer,  filename string) error {
+	dist, err := imports.Process(filename, g.buf.Bytes(), &imports.Options{Comments: true})
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &dist, nil
+	if _, err := io.Copy(w, bytes.NewReader(dist)); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (g *Generator) appendHeader(it *InterfaceType) {
@@ -58,8 +62,8 @@ func (g *Generator) appendStructDefs(it *InterfaceType) {
 	g.Printf("\n")
 }
 
-func (g *Generator) appendMethod(funcs *[]FuncType, _ string) {
-	for _, f := range *funcs {
+func (g *Generator) appendMethod(funcs []FuncType, _ string) {
+	for _, f := range funcs {
 		g.Printf("func (d *dicontainer) %s()", f.Name)
 		if len(f.ReturnTypes) != 1 {
 			log.Fatalf("Must be 1 instance but %d", len(f.ReturnTypes))

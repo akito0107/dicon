@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-
 	"strings"
+	"path/filepath"
+	"io"
 
 	"github.com/akito0107/dicon/internal"
 	"github.com/urfave/cli"
+	"log"
 )
 
 func main() {
@@ -35,14 +37,16 @@ func main() {
 		},
 	}
 
-	app.Run(os.Args)
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func run(pkgs []string, filename string, dry bool) error {
 	var it *internal.InterfaceType
 
 	for _, pkg := range pkgs {
-		files, err := ioutil.ReadDir("./" + pkg)
+		files, err := ioutil.ReadDir(filepath.Join(".", pkg))
 		if err != nil {
 			return err
 		}
@@ -51,7 +55,7 @@ func run(pkgs []string, filename string, dry bool) error {
 			filenames = append(filenames, f.Name())
 		}
 		pparser := internal.NewPackageParser(pkg)
-		res, err := pparser.FindDicon(&filenames)
+		res, err := pparser.FindDicon(filenames)
 		if err != nil {
 			return err
 		}
@@ -84,41 +88,37 @@ func run(pkgs []string, filename string, dry bool) error {
 			filenames = append(filenames, f.Name())
 		}
 		pparser := internal.NewPackageParser(pkg)
-		ft, err := pparser.FindConstructors(&filenames, &funcnames)
+		ft, err := pparser.FindConstructors(filenames, funcnames)
 		if err != nil {
 			return err
 		}
-		funcs = append(funcs, *ft...)
+		funcs = append(funcs, ft...)
 	}
 
 	g := internal.NewGenerator()
 
-	if e := g.Generate(it, &funcs); e != nil {
+	if e := g.Generate(it, funcs); e != nil {
 		return e
 	}
 
-	b, e := g.Out()
-	if e != nil {
-		panic(e)
-	}
-
+	name := filepath.Join(targetPkg, filename+".go")
+	var w io.Writer
 	if dry {
-		fmt.Printf("%s\n", *b)
-		return nil
+		w = os.Stdout
+	} else {
+		if _, err := os.Stat(name); !os.IsNotExist(err) {
+			os.Remove(name)
+		}
+		out, e := os.Create(name)
+		if e != nil {
+			return e
+		}
+		defer out.Close()
+		w = out
 	}
-
-	name := fmt.Sprintf("%s/%s.go", targetPkg, filename)
-	if _, err := os.Stat(name); !os.IsNotExist(err) {
-		os.Remove(name)
-	}
-
-	out, e := os.Create(name)
-	if e != nil {
+	if e := g.Out(w, name); e != nil {
 		return e
 	}
-	defer out.Close()
-	if _, e := out.Write(*b); e != nil {
-		return e
-	}
+
 	return nil
 }

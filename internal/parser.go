@@ -40,17 +40,17 @@ func NewPackageParser(pack string) *PackageParser {
 	}
 }
 
-func (p *PackageParser) FindDicon(filenames *[]string) (*InterfaceType, error) {
+func (p *PackageParser) FindDicon(filenames []string) (*InterfaceType, error) {
 	result := make([]InterfaceType, 0)
-	for _, filename := range *filenames {
+	for _, filename := range filenames {
 		its, e := findDicon(p.PackageName+"/"+filename, nil, "+DICON")
 		if e != nil {
 			return nil, e
 		}
-		if len(*its) > 1 {
-			return nil, fmt.Errorf("DICON interface must be single, but %d", len(*its))
-		} else if len(*its) == 1 {
-			result = append(result, (*its)[0])
+		if len(its) > 1 {
+			return nil, fmt.Errorf("DICON interface must be single, but %d", len(its))
+		} else if len(its) == 1 {
+			result = append(result, its[0])
 		}
 	}
 
@@ -61,21 +61,21 @@ func (p *PackageParser) FindDicon(filenames *[]string) (*InterfaceType, error) {
 	return &(result[0]), nil
 }
 
-func (p *PackageParser) FindConstructors(filenames *[]string, funcnames *[]string) (*[]FuncType, error) {
-	result := make([]FuncType, 0)
+func (p *PackageParser) FindConstructors(filenames []string, funcnames []string) ([]FuncType, error) {
+	var result []FuncType
 
-	for _, f := range *filenames {
+	for _, f := range filenames {
 		r, e := findConstructors(p.PackageName, f, nil, funcnames)
 		if e != nil {
 			return nil, e
 		}
-		result = append(result, *r...)
+		result = append(result, r...)
 	}
 
-	return &result, nil
+	return result, nil
 }
 
-func findConstructors(packageName string, from string, src interface{}, funcnames *[]string) (*[]FuncType, error) {
+func findConstructors(packageName string, from string, src interface{}, funcnames []string) ([]FuncType, error) {
 	f, err := parser.ParseFile(token.NewFileSet(), packageName+"/"+from, src, parser.ParseComments)
 	if err != nil {
 		return nil, err
@@ -91,10 +91,10 @@ func findConstructors(packageName string, from string, src interface{}, funcname
 			return true
 		}
 		resultType := fun.Type.Results.List[0]
-		for _, name := range *funcnames {
+		for _, name := range funcnames {
 			s := fmt.Sprintf("New%s", name)
-			if strings.EqualFold(s, fun.Name.Name) && strings.EqualFold(name, fmt.Sprintf("%v", resultType.Type)) {
-				args := make([]parameterType, 0)
+			if s == fun.Name.Name && name == fmt.Sprintf("%v", resultType.Type) {
+				args := make([]parameterType, 0, len(fun.Type.Params.List))
 				for _, p := range fun.Type.Params.List {
 					args = append(args, parameterType{
 						Type: parseTypeExpr(p.Type),
@@ -116,10 +116,10 @@ func findConstructors(packageName string, from string, src interface{}, funcname
 		return true
 	})
 
-	return &funcs, nil
+	return funcs, nil
 }
 
-func findDicon(from string, src interface{}, annotation string) (*[]InterfaceType, error) {
+func findDicon(from string, src interface{}, annotation string) ([]InterfaceType, error) {
 	f, err := parser.ParseFile(token.NewFileSet(), from, src, parser.ParseComments)
 	if err != nil {
 		return nil, err
@@ -141,30 +141,30 @@ func findDicon(from string, src interface{}, annotation string) (*[]InterfaceTyp
 		if !ok {
 			return true
 		}
-		it.Comments = *comments
+		it.Comments = comments
 		it.PackageName = pkg
 		its = append(its, *it)
 
 		return true
 	})
 
-	return &its, nil
+	return its, nil
 }
 
-func findComments(cs *ast.CommentGroup) *comments {
+func findComments(cs *ast.CommentGroup) comments {
 	res := comments{}
 	if cs == nil {
-		return &res
+		return res
 	}
 	for _, c := range cs.List {
 		t := strings.TrimSpace(strings.TrimLeft(c.Text, "//"))
 		res = append(res, comment(t))
 	}
-	return &res
+	return res
 }
 
-func isAnnotated(cs *comments, annotation string) bool {
-	for _, c := range *cs {
+func isAnnotated(cs comments, annotation string) bool {
+	for _, c := range cs {
 		if strings.HasPrefix(string(c), annotation) {
 			return true
 		}

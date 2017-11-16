@@ -3,6 +3,8 @@ package internal
 import (
 	"bytes"
 	"testing"
+
+	"github.com/andreyvit/diff"
 )
 
 func TestGenerator_appendHeader(t *testing.T) {
@@ -19,7 +21,7 @@ func TestGenerator_appendHeader(t *testing.T) {
 	g.appendHeader(it)
 	act := pretty(t, g.buf.Bytes())
 	if !bytes.Equal(act, ex) {
-		t.Errorf("Not Matched: ex: %s, actual: %s", ex, act)
+		t.Errorf("Not Matched: \n%v", diff.LineDiff(string(ex), string(act)))
 	}
 
 }
@@ -44,7 +46,7 @@ func TestGenerator_appendStructDef(t *testing.T) {
 	g.appendStructDefs(it)
 	act := pretty(t, g.buf.Bytes())
 	if !bytes.Equal(act, ex) {
-		t.Errorf("Not Matched: ex: ---\n%s\n---, actual: ---\n%s\n---", ex, act)
+		t.Errorf("Not Matched: \n%v", diff.LineDiff(string(ex), string(act)))
 	}
 }
 
@@ -83,6 +85,7 @@ func TestGenerator_appendMethods(t *testing.T) {
 	act := pretty(t, g.buf.Bytes())
 	if !bytes.Equal(act, ex) {
 		t.Errorf("Not Matched: ex: ---\n%s\n---, actual: ---\n%s\n---", ex, act)
+		t.Errorf("Not Matched: \n%v", diff.LineDiff(string(ex), string(act)))
 	}
 }
 
@@ -124,7 +127,7 @@ func TestGenerator_appendMethodsMultipleDependencies(t *testing.T) {
 
 	act := pretty(t, g.buf.Bytes())
 	if !bytes.Equal(act, ex) {
-		t.Errorf("Not Matched: ex: ---\n%s\n---, actual: ---\n%s\n---", ex, act)
+		t.Errorf("Not Matched: \n%v", diff.LineDiff(string(ex), string(act)))
 	}
 }
 
@@ -187,7 +190,7 @@ func TestGenerate(t *testing.T) {
 
 	act := pretty(t, g.buf.Bytes())
 	if !bytes.Equal(act, ex) {
-		t.Errorf("Not Matched: ex: ---\n%s\n---, actual: ---\n%s\n---", ex, act)
+		t.Errorf("Not Matched: \n%v", diff.LineDiff(string(ex), string(act)))
 	}
 }
 
@@ -221,7 +224,7 @@ func TestGenerateSubPackage(t *testing.T) {
 		}
 		dep0 := d.Dependency1()
 		dep1 := d.Dependency2()
-		instance := NewSampleComponent(dep0, dep1)
+		instance := sample.NewSampleComponent(dep0, dep1)
 		d.store["SampleComponent"] = instance
 		return instance
 	}`))
@@ -254,6 +257,6 @@ func TestGenerateSubPackage(t *testing.T) {
 
 	act := fixImports(t, g.buf.Bytes())
 	if !bytes.Equal(act, ex) {
-		t.Errorf("Not Matched: ex: ---\n%s\n---, actual: ---\n%s\n---", ex, act)
+		t.Errorf("Not Matched: \n%v", diff.LineDiff(string(ex), string(act)))
 	}
 }

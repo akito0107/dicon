@@ -2,6 +2,18 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/andreyvit/diff"
+  packages = ["."]
+  revision = "c7f18ee00883bfd3b00e0a2bf7607827e0148ad4"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/sergi/go-diff"
+  packages = ["diffmatchpatch"]
+  revision = "1744e2970ca51c86172c8190fadad617561ed6e7"
+
+[[projects]]
   name = "github.com/urfave/cli"
   packages = ["."]
   revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
@@ -16,6 +28,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9a351e32ab4d1055d881201225b8f9184e2b7fe132cbe93b1c573adac51346ba"
+  inputs-digest = "08ae2717e8fcbe3eb6f6ef6151b0cf109693c843683e88286f9dbf1b41b63c75"
   solver-name = "gps-cdcl"
   solver-version = 1
