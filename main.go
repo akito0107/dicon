@@ -28,8 +28,8 @@ func main() {
 				return run(pkgs, filename, d)
 			},
 			Flags: []cli.Flag{
-				cli.StringFlag{Name: "pkg, p", Value: ""},
-				cli.StringFlag{Name: "out, o", Value: "dicon_gen"},
+				cli.StringFlag{Name: "pkg, p", Value: "", Usage: "target package(s)."},
+				cli.StringFlag{Name: "out, o", Value: "dicon_gen", Usage: "output file name"},
 				cli.BoolFlag{Name: "dry-run"},
 			},
 		},
