@@ -96,7 +96,7 @@ func (d *dicontainer) UserService() UserService {
 	instance := service.NewUserService(dep0)
 	d.store["UserService"] = instance
 	return instance
-    }
+}
 ```
 
 5. Use it!
