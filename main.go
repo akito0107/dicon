@@ -46,7 +46,7 @@ func run(pkgs []string, filename string, dry bool) error {
 		if err != nil {
 			return err
 		}
-		filenames := make([]string, 0)
+		filenames := make([]string, 0, len(files))
 		for _, f := range files {
 			filenames = append(filenames, f.Name())
 		}
@@ -68,18 +68,18 @@ func run(pkgs []string, filename string, dry bool) error {
 
 	targetPkg := it.PackageName
 
-	funcnames := make([]string, 0)
+	funcnames := make([]string, 0, len(it.Funcs))
 	for _, fn := range it.Funcs {
 		funcnames = append(funcnames, fn.Name)
 	}
 
-	funcs := make([]internal.FuncType, 0)
+	var funcs []internal.FuncType
 	for _, pkg := range pkgs {
 		files, err := ioutil.ReadDir("./" + pkg)
 		if err != nil {
 			return err
 		}
-		filenames := make([]string, 0)
+		filenames := make([]string, 0, len(files))
 		for _, f := range files {
 			filenames = append(filenames, f.Name())
 		}
