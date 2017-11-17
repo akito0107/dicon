@@ -9,19 +9,19 @@ import (
 )
 
 func pretty(t *testing.T, src []byte) []byte {
-	dist, e := format.Source(src)
+	dist, err := format.Source(src)
 
-	if e != nil {
-		t.Fatal(e)
+	if err != nil {
+		t.Fatal(err)
 	}
 	return dist
 }
 
 func fixImports(t *testing.T, src []byte) []byte {
-	dist, e := imports.Process("/tmp/tmp.go", src, &imports.Options{Comments: true})
+	dist, err := imports.Process("/tmp/tmp.go", src, &imports.Options{Comments: true})
 
-	if e != nil {
-		t.Fatal(e)
+	if err != nil {
+		t.Fatal(err)
 	}
 	return dist
 }

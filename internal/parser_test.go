@@ -18,9 +18,9 @@ type Ex2 interface {
 
 // must retrieve annotated interface
 func TestParse(t *testing.T) {
-	its, e := findDicon("/tmp/tmp.go", TEST_FILE1, "+DICON")
-	if e != nil {
-		t.Error(e)
+	its, err := findDicon("/tmp/tmp.go", TEST_FILE1, "+DICON")
+	if err != nil {
+		t.Error(err)
 	}
 
 	if len(its) != 1 {
