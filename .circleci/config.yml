@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.9.2-stretch
+    steps:
+      - checkout
+      - run: make setup
+      - run: make dep
+      - run: make
+      - run: make test
