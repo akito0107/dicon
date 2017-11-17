@@ -3,6 +3,8 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.9.2-stretch
+    working_directory: /go/src/github.com/akito0107/dicon
+
     steps:
       - checkout
       - run: make setup
