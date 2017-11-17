@@ -80,7 +80,7 @@ func TestGenerator_appendMethods(t *testing.T) {
 
 	it := &InterfaceType{Funcs: []FuncType{f1}}
 	g := &Generator{PackageName: "test"}
-	g.appendMethod(&it.Funcs, it.Name)
+	g.appendMethod(it.Funcs, it.Name)
 
 	act := pretty(t, g.buf.Bytes())
 	if !bytes.Equal(act, ex) {
@@ -123,7 +123,7 @@ func TestGenerator_appendMethodsMultipleDependencies(t *testing.T) {
 
 	it := &InterfaceType{Funcs: []FuncType{f1}}
 	g := &Generator{PackageName: "test"}
-	g.appendMethod(&it.Funcs, "")
+	g.appendMethod(it.Funcs, "")
 
 	act := pretty(t, g.buf.Bytes())
 	if !bytes.Equal(act, ex) {
@@ -186,7 +186,7 @@ func TestGenerate(t *testing.T) {
 	}
 	g := &Generator{}
 
-	g.Generate(it, &it.Funcs)
+	g.Generate(it, it.Funcs)
 
 	act := pretty(t, g.buf.Bytes())
 	if !bytes.Equal(act, ex) {
@@ -253,7 +253,7 @@ func TestGenerateSubPackage(t *testing.T) {
 	}
 	g := &Generator{}
 
-	g.Generate(it, &it.Funcs)
+	g.Generate(it, it.Funcs)
 
 	act := fixImports(t, g.buf.Bytes())
 	if !bytes.Equal(act, ex) {
