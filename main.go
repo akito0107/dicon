@@ -2,15 +2,15 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"strings"
-	"path/filepath"
 	"io"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/akito0107/dicon/internal"
 	"github.com/urfave/cli"
-	"log"
 )
 
 func main() {
@@ -97,8 +97,8 @@ func run(pkgs []string, filename string, dry bool) error {
 
 	g := internal.NewGenerator()
 
-	if e := g.Generate(it, funcs); e != nil {
-		return e
+	if err := g.Generate(it, funcs); err != nil {
+		return err
 	}
 
 	name := filepath.Join(targetPkg, filename+".go")
@@ -109,15 +109,15 @@ func run(pkgs []string, filename string, dry bool) error {
 		if _, err := os.Stat(name); !os.IsNotExist(err) {
 			os.Remove(name)
 		}
-		out, e := os.Create(name)
-		if e != nil {
-			return e
+		out, err := os.Create(name)
+		if err != nil {
+			return err
 		}
 		defer out.Close()
 		w = out
 	}
-	if e := g.Out(w, name); e != nil {
-		return e
+	if err := g.Out(w, name); err != nil {
+		return err
 	}
 
 	return nil

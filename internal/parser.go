@@ -43,9 +43,9 @@ func NewPackageParser(pack string) *PackageParser {
 func (p *PackageParser) FindDicon(filenames []string) (*InterfaceType, error) {
 	result := make([]InterfaceType, 0)
 	for _, filename := range filenames {
-		its, e := findDicon(p.PackageName+"/"+filename, nil, "+DICON")
-		if e != nil {
-			return nil, e
+		its, err := findDicon(p.PackageName+"/"+filename, nil, "+DICON")
+		if err != nil {
+			return nil, err
 		}
 		if len(its) > 1 {
 			return nil, fmt.Errorf("DICON interface must be single, but %d", len(its))
@@ -65,9 +65,9 @@ func (p *PackageParser) FindConstructors(filenames []string, funcnames []string)
 	var result []FuncType
 
 	for _, f := range filenames {
-		r, e := findConstructors(p.PackageName, f, nil, funcnames)
-		if e != nil {
-			return nil, e
+		r, err := findConstructors(p.PackageName, f, nil, funcnames)
+		if err != nil {
+			return nil, err
 		}
 		result = append(result, r...)
 	}
