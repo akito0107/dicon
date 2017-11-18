@@ -5,9 +5,19 @@ jobs:
       - image: circleci/golang:1.9.2-stretch
     working_directory: /go/src/github.com/akito0107/dicon
 
+    environment:
+      TEST_RESULTS: /tmp/test-results
+
     steps:
       - checkout
+      - run: mkdir -p $TEST_RESULTS
       - run: make setup
+      - run: go get github.com/jstemmer/go-junit-report
       - run: make dep
-      - run: make
-      - run: make test
+      - run:
+          name: Run unit tests
+          command: |
+            trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
+            make test | tee ${TEST_RESULTS}/go-test.out
+      - store_test_results:
+          path: /tmp/test-results

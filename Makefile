@@ -25,7 +25,7 @@ install:
 	go install
 
 test/internal:
-	go test -race $(PACKAGENAME)/internal
+	go test -cover -race $(PACKAGENAME)/internal
 
 ## remove build files
 clean:
