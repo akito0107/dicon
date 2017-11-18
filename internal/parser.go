@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"path/filepath"
 	"strings"
 )
 
@@ -43,7 +44,7 @@ func NewPackageParser(pack string) *PackageParser {
 func (p *PackageParser) FindDicon(filenames []string) (*InterfaceType, error) {
 	result := make([]InterfaceType, 0, len(filenames))
 	for _, filename := range filenames {
-		its, err := findDicon(p.PackageName+"/"+filename, nil, "+DICON")
+		its, err := findDicon(filepath.Join(p.PackageName, filename), nil, "+DICON")
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +77,7 @@ func (p *PackageParser) FindConstructors(filenames []string, funcnames []string)
 }
 
 func findConstructors(packageName string, from string, src interface{}, funcnames []string) ([]FuncType, error) {
-	f, err := parser.ParseFile(token.NewFileSet(), packageName+"/"+from, src, parser.ParseComments)
+	f, err := parser.ParseFile(token.NewFileSet(), filepath.Join(packageName, from), src, parser.ParseComments)
 	if err != nil {
 		return nil, err
 	}

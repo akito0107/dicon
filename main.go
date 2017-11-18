@@ -79,7 +79,7 @@ func run(pkgs []string, filename string, dry bool) error {
 
 	var funcs []internal.FuncType
 	for _, pkg := range pkgs {
-		files, err := ioutil.ReadDir("./" + pkg)
+		files, err := ioutil.ReadDir(filepath.Join(".", pkg))
 		if err != nil {
 			return err
 		}
