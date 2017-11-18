@@ -41,7 +41,7 @@ func NewPackageParser(pack string) *PackageParser {
 }
 
 func (p *PackageParser) FindDicon(filenames []string) (*InterfaceType, error) {
-	result := make([]InterfaceType, 0)
+	result := make([]InterfaceType, 0, len(filenames))
 	for _, filename := range filenames {
 		its, err := findDicon(p.PackageName+"/"+filename, nil, "+DICON")
 		if err != nil {
@@ -80,7 +80,7 @@ func findConstructors(packageName string, from string, src interface{}, funcname
 	if err != nil {
 		return nil, err
 	}
-	funcs := make([]FuncType, 0)
+	var funcs []FuncType
 
 	ast.Inspect(f, func(n ast.Node) bool {
 		fun, ok := n.(*ast.FuncDecl)
@@ -125,7 +125,7 @@ func findDicon(from string, src interface{}, annotation string) ([]InterfaceType
 		return nil, err
 	}
 
-	its := make([]InterfaceType, 0)
+	var its []InterfaceType
 
 	pkg := f.Name.Name
 	ast.Inspect(f, func(n ast.Node) bool {
@@ -174,7 +174,7 @@ func isAnnotated(cs comments, annotation string) bool {
 
 func findInterface(specs []ast.Spec) (*InterfaceType, bool) {
 	it := &InterfaceType{}
-	funcs := make([]FuncType, 0)
+	var funcs []FuncType
 
 	for _, spec := range specs {
 		t := spec.(*ast.TypeSpec)
@@ -190,7 +190,7 @@ func findInterface(specs []ast.Spec) (*InterfaceType, bool) {
 			}
 			ft := &FuncType{}
 
-			params := make([]parameterType, 0)
+			params := make([]parameterType, 0, len(f.Params.List))
 			for _, p := range f.Params.List {
 				params = append(params, parameterType{
 					Type: parseTypeExpr(p.Type),
@@ -198,7 +198,7 @@ func findInterface(specs []ast.Spec) (*InterfaceType, bool) {
 			}
 			ft.ArgumentTypes = params
 
-			returns := make([]parameterType, 0)
+			returns := make([]parameterType, 0, len(f.Results.List))
 			for _, r := range f.Results.List {
 				returns = append(returns, parameterType{
 					Type: parseTypeExpr(r.Type),

@@ -3,11 +3,11 @@ package internal
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"strings"
 
 	"golang.org/x/tools/imports"
-	"io"
 )
 
 type Generator struct {
@@ -31,7 +31,7 @@ func (g *Generator) Generate(it *InterfaceType, fs []FuncType) error {
 	return nil
 }
 
-func (g *Generator) Out(w io.Writer,  filename string) error {
+func (g *Generator) Out(w io.Writer, filename string) error {
 	dist, err := imports.Process(filename, g.buf.Bytes(), &imports.Options{Comments: true})
 	if err != nil {
 		return err
@@ -79,7 +79,7 @@ func (g *Generator) appendMethod(funcs []FuncType, _ string) {
 		g.Printf("log.Fatal(\"cached instance is polluted\")")
 		g.Printf("}\n")
 
-		dep := []string{}
+		dep := make([]string, 0, len(f.ArgumentTypes))
 		for i, a := range f.ArgumentTypes {
 			g.Printf("dep%d := d.%s()\n", i, a.Type)
 			dep = append(dep, fmt.Sprintf("dep%d", i))
