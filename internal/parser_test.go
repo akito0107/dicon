@@ -1,6 +1,10 @@
 package internal
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/andreyvit/diff"
+)
 
 var TEST_FILE1 = `
 package main
@@ -18,7 +22,7 @@ type Ex2 interface {
 
 // must retrieve annotated interface
 func TestParse(t *testing.T) {
-	its, err := findDicon("/tmp/tmp.go", TEST_FILE1, "+DICON")
+	its, err := findDicon("main", "/tmp/tmp.go", TEST_FILE1, "+DICON")
 	if err != nil {
 		t.Error(err)
 	}
@@ -33,7 +37,7 @@ func TestParse(t *testing.T) {
 }
 
 func TestParseWithFuncNames(t *testing.T) {
-	its, _ := findDicon("/tmp/tmp.go", TEST_FILE1, "+DICON")
+	its, _ := findDicon("main", "/tmp/tmp.go", TEST_FILE1, "+DICON")
 	for _, it := range its {
 		for _, f := range it.Funcs {
 			if f.Name != "Exec" && f.Name != "Exec2" {
@@ -44,7 +48,7 @@ func TestParseWithFuncNames(t *testing.T) {
 }
 
 func TestParseWithFuncParameters(t *testing.T) {
-	its, _ := findDicon("/tmp/tmp.go", TEST_FILE1, "+DICON")
+	its, _ := findDicon("main", "/tmp/tmp.go", TEST_FILE1, "+DICON")
 	for _, it := range its {
 		f := it.Funcs[0]
 		if f.Name == "Exec2" {
@@ -56,7 +60,7 @@ func TestParseWithFuncParameters(t *testing.T) {
 }
 
 func TestParseWithReturnParameters(t *testing.T) {
-	its, _ := findDicon("/tmp/tmp.go", TEST_FILE1, "+DICON")
+	its, _ := findDicon("main", "/tmp/tmp.go", TEST_FILE1, "+DICON")
 	for _, it := range its {
 		f := it.Funcs[0]
 		if f.Name == "Exec" {
@@ -78,17 +82,6 @@ package di
 // +DICON
 type DIContainer interface {
 	SampleComponent() SampleComponent
-}
-`
-
-var TEST_DEPENDENCY = `
-package di
-
-type Dependency interface {}
-type dependency struct {}
-
-func NewDependency() Dependency {
-	return &dependency{}
 }
 `
 
@@ -137,4 +130,107 @@ func TestPackageParser_FindConstructors(t *testing.T) {
 	if fun.PackageName != "test" {
 		t.Errorf("package name is test but %s", fun.PackageName)
 	}
+}
+
+var TEST_DEPENDENCY = `
+package di
+
+type Dependency interface {
+	Run() error
+}
+type dependency struct {}
+
+func NewDependency() Dependency {
+	return &dependency{}
+}
+
+func (*dependency) Run() error {
+	return nil
+}
+`
+
+func TestPackageParer_parseDependencyFuncs(t *testing.T) {
+	ds, _ := parseDependencyFuncs("test", []string{"Dependency"}, "/tmp/tmp.go", TEST_DEPENDENCY)
+	if len(ds) != 1 {
+		t.Fatalf("dependency function length myst be 1 but %d", len(ds))
+	}
+
+	if ds[0].Name != "Dependency" {
+		t.Errorf("Dependency name must be Dependency but : %s", ds[0].Name)
+	}
+
+	if len(ds[0].Funcs) != 1 {
+		t.Fatalf("Dependency func has only Run method")
+	}
+
+	if ds[0].Funcs[0].ReturnTypes[0].Type != "error" {
+		t.Errorf("Return type must be error")
+	}
+}
+
+func TestParameterType_RelativeName(t *testing.T) {
+	t.Run("same package", func(t *testing.T) {
+		p := &ParameterType{
+			DeclaredPackageName: "test",
+			Selector:            "",
+			Type:                "Test",
+		}
+
+		if "Test" != p.RelativeName("test") {
+			t.Errorf("Not Matched: \n%v\n", diff.LineDiff("Test", p.RelativeName("test")))
+		}
+	})
+
+	t.Run("same package but has a selector", func(t *testing.T) {
+		p := &ParameterType{
+			DeclaredPackageName: "test",
+			Selector:            "sample",
+			Type:                "Test",
+		}
+		if "sample.Test" != p.RelativeName("test") {
+			t.Errorf("Not Matched: \n%v\n", diff.LineDiff("sample.Test", p.RelativeName("test")))
+		}
+	})
+
+	t.Run("different package", func(t *testing.T) {
+		p := &ParameterType{
+			DeclaredPackageName: "test",
+			Type:                "Test",
+		}
+		if "test.Test" != p.RelativeName("sample") {
+			t.Errorf("Not Matched: \n%v\n", diff.LineDiff("test.Test", p.RelativeName("sample")))
+		}
+	})
+
+	t.Run("different package also has a selector", func(t *testing.T) {
+		p := &ParameterType{
+			DeclaredPackageName: "test",
+			Selector:            "select",
+			Type:                "Test",
+		}
+		if "select.Test" != p.RelativeName("sample") {
+			t.Errorf("Not Matched: \n%v\n", diff.LineDiff("test.Test", p.RelativeName("sample")))
+		}
+	})
+
+	t.Run("selector name same as current package", func(t *testing.T) {
+		p := &ParameterType{
+			DeclaredPackageName: "test",
+			Selector:            "select",
+			Type:                "Test",
+		}
+		if "Test" != p.RelativeName("select") {
+			t.Errorf("Not Matched: \n%v\n", diff.LineDiff("Test", p.RelativeName("select")))
+		}
+	})
+
+	t.Run("builtin type", func(t *testing.T) {
+		p := &ParameterType{
+			DeclaredPackageName: "test",
+			Type:                "string",
+		}
+		if "string" != p.RelativeName("select") {
+			t.Errorf("Not Matched: \n%v\n", diff.LineDiff("string", p.RelativeName("select")))
+		}
+	})
 }
