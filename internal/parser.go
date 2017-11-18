@@ -58,7 +58,7 @@ func (p *PackageParser) FindDicon(filenames []string) (*InterfaceType, error) {
 		return nil, nil
 	}
 
-	return &(result[0]), nil
+	return &result[0], nil
 }
 
 func (p *PackageParser) FindConstructors(filenames []string, funcnames []string) ([]FuncType, error) {
