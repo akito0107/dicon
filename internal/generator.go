@@ -93,7 +93,7 @@ func (g *Generator) appendMethod(funcs []FuncType, _ string) {
 }
 
 func (g *Generator) relativePackageName(packageName string) string {
-	if strings.Compare(g.PackageName, packageName) == 0 {
+	if g.PackageName == packageName {
 		return ""
 	}
 
