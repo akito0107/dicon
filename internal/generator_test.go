@@ -14,7 +14,7 @@ func TestGenerator_appendHeader(t *testing.T) {
 
 	import "log"
 `))
-	g := &Generator{}
+	g := &Generator{PackageName: "main"}
 	it := &InterfaceType{
 		PackageName: "main",
 	}
@@ -64,17 +64,19 @@ func TestGenerator_appendMethods(t *testing.T) {
 	return instance
 }
 `))
-	p1 := parameterType{
-		Type: "Dependency",
+	p1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Dependency",
 	}
-	p2 := parameterType{
-		Type: "SampleComponent",
+	p2 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "SampleComponent",
 	}
 
 	f1 := FuncType{
 		Name:          "SampleComponent",
-		ArgumentTypes: []parameterType{p1},
-		ReturnTypes:   []parameterType{p2},
+		ArgumentTypes: []ParameterType{p1},
+		ReturnTypes:   []ParameterType{p2},
 		PackageName:   "test",
 	}
 
@@ -104,20 +106,23 @@ func TestGenerator_appendMethodsMultipleDependencies(t *testing.T) {
 	return instance
 }
 `))
-	p1 := parameterType{
-		Type: "Dependency1",
+	p1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Dependency1",
 	}
-	p2 := parameterType{
-		Type: "Dependency2",
+	p2 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Dependency2",
 	}
-	r1 := parameterType{
-		Type: "SampleComponent",
+	r1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "SampleComponent",
 	}
 
 	f1 := FuncType{
 		Name:          "SampleComponent",
-		ArgumentTypes: []parameterType{p1, p2},
-		ReturnTypes:   []parameterType{r1},
+		ArgumentTypes: []ParameterType{p1, p2},
+		ReturnTypes:   []ParameterType{r1},
 		PackageName:   "test",
 	}
 
@@ -162,20 +167,23 @@ func TestGenerate(t *testing.T) {
 		return instance
 	}`))
 
-	p1 := parameterType{
-		Type: "Dependency1",
+	p1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Dependency1",
 	}
-	p2 := parameterType{
-		Type: "Dependency2",
+	p2 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Dependency2",
 	}
-	r1 := parameterType{
-		Type: "SampleComponent",
+	r1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "SampleComponent",
 	}
 
 	f1 := FuncType{
 		Name:          "SampleComponent",
-		ArgumentTypes: []parameterType{p1, p2},
-		ReturnTypes:   []parameterType{r1},
+		ArgumentTypes: []ParameterType{p1, p2},
+		ReturnTypes:   []ParameterType{r1},
 		PackageName:   "test",
 	}
 
@@ -184,7 +192,9 @@ func TestGenerate(t *testing.T) {
 		PackageName: "test",
 		Funcs:       []FuncType{f1},
 	}
-	g := &Generator{}
+	g := &Generator{
+		PackageName: "test",
+	}
 
 	g.Generate(it, it.Funcs)
 
@@ -229,20 +239,23 @@ func TestGenerateSubPackage(t *testing.T) {
 		return instance
 	}`))
 
-	p1 := parameterType{
-		Type: "Dependency1",
+	p1 := ParameterType{
+		DeclaredPackageName: "sample",
+		Type:                "Dependency1",
 	}
-	p2 := parameterType{
-		Type: "Dependency2",
+	p2 := ParameterType{
+		DeclaredPackageName: "sample",
+		Type:                "Dependency2",
 	}
-	r1 := parameterType{
-		Type: "SampleComponent",
+	r1 := ParameterType{
+		DeclaredPackageName: "sample",
+		Type:                "SampleComponent",
 	}
 
 	f1 := FuncType{
 		Name:          "SampleComponent",
-		ArgumentTypes: []parameterType{p1, p2},
-		ReturnTypes:   []parameterType{r1},
+		ArgumentTypes: []ParameterType{p1, p2},
+		ReturnTypes:   []ParameterType{r1},
 		PackageName:   "sample",
 	}
 
@@ -251,11 +264,189 @@ func TestGenerateSubPackage(t *testing.T) {
 		PackageName: "test",
 		Funcs:       []FuncType{f1},
 	}
-	g := &Generator{}
-
+	g := Generator{
+		PackageName: "test",
+	}
 	g.Generate(it, it.Funcs)
 
 	act := fixImports(t, g.buf.Bytes())
+	if !bytes.Equal(act, ex) {
+		t.Errorf("Not Matched: \n%v", diff.LineDiff(string(ex), string(act)))
+	}
+}
+
+func TestAppendMockStruct(t *testing.T) {
+	ex := pretty(t, []byte(`type TestInterfaceMock struct {
+		TestFuncMock func(a0 Arg1, a1 Arg2) Ret1
+	}
+
+	func NewTestInterfaceMock() *TestInterfaceMock {
+		return &TestInterfaceMock{}
+	}
+
+	func (mk *TestInterfaceMock) TestFunc(a0 Arg1, a1 Arg2) Ret1 {
+		return mk.TestFuncMock(a0, a1)
+	}
+`))
+
+	p1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Arg1",
+	}
+	p2 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Arg2",
+	}
+	r1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Ret1",
+	}
+
+	f1 := FuncType{
+		Name:          "TestFunc",
+		ArgumentTypes: []ParameterType{p1, p2},
+		ReturnTypes:   []ParameterType{r1},
+	}
+
+	it := &InterfaceType{
+		Name:        "TestInterface",
+		PackageName: "test",
+		Funcs:       []FuncType{f1},
+	}
+
+	g := Generator{
+		PackageName: "test",
+	}
+	g.appendMockStruct(it)
+	act := pretty(t, g.buf.Bytes())
+	if !bytes.Equal(act, ex) {
+		t.Errorf("Not Matched: \n%v", diff.LineDiff(string(ex), string(act)))
+	}
+}
+
+func TestAppendMockStructMultipleFuncs(t *testing.T) {
+	ex := pretty(t, []byte(`type TestInterfaceMock struct {
+		TestFunc1Mock func(a0 Arg1)
+		TestFunc2Mock func(a0 Arg1, a1 Arg2) (Ret1, Ret2)
+	}
+
+	func NewTestInterfaceMock() *TestInterfaceMock {
+		return &TestInterfaceMock{}
+	}
+
+	func (mk *TestInterfaceMock) TestFunc1(a0 Arg1) {
+		return mk.TestFunc1Mock(a0)
+	}
+	func (mk *TestInterfaceMock) TestFunc2(a0 Arg1, a1 Arg2) (Ret1, Ret2) {
+		return mk.TestFunc2Mock(a0, a1)
+	}
+`))
+
+	p1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Arg1",
+	}
+	p2 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Arg2",
+	}
+	r1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Ret1",
+	}
+	r2 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Ret2",
+	}
+
+	f1 := FuncType{
+		Name:          "TestFunc1",
+		ArgumentTypes: []ParameterType{p1},
+		ReturnTypes:   []ParameterType{},
+	}
+
+	f2 := FuncType{
+		Name:          "TestFunc2",
+		ArgumentTypes: []ParameterType{p1, p2},
+		ReturnTypes:   []ParameterType{r1, r2},
+	}
+
+	it := &InterfaceType{
+		Name:        "TestInterface",
+		PackageName: "test",
+		Funcs:       []FuncType{f1, f2},
+	}
+
+	g := Generator{
+		PackageName: "test",
+	}
+	g.appendMockStruct(it)
+	act := pretty(t, g.buf.Bytes())
+	if !bytes.Equal(act, ex) {
+		t.Errorf("Not Matched: \n%v", diff.LineDiff(string(ex), string(act)))
+	}
+}
+
+func TestAppendMockStructMultipleFuncWithPackages(t *testing.T) {
+	ex := pretty(t, []byte(`type TestInterfaceMock struct {
+		TestFunc1Mock func(a0 pak1.Arg1)
+		TestFunc2Mock func(a0 pak1.Arg1, a1 Arg2) (Ret1, pak2.Ret2)
+	}
+
+	func NewTestInterfaceMock() *TestInterfaceMock {
+		return &TestInterfaceMock{}
+	}
+
+	func (mk *TestInterfaceMock) TestFunc1(a0 pak1.Arg1) {
+		return mk.TestFunc1Mock(a0)
+	}
+	func (mk *TestInterfaceMock) TestFunc2(a0 pak1.Arg1, a1 Arg2) (Ret1, pak2.Ret2) {
+		return mk.TestFunc2Mock(a0, a1)
+	}
+`))
+
+	p1 := ParameterType{
+		DeclaredPackageName: "test",
+		Selector:            "pak1",
+		Type:                "Arg1",
+	}
+	p2 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Arg2",
+	}
+	r1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "Ret1",
+	}
+	r2 := ParameterType{
+		DeclaredPackageName: "test",
+		Selector:            "pak2",
+		Type:                "Ret2",
+	}
+
+	f1 := FuncType{
+		Name:          "TestFunc1",
+		ArgumentTypes: []ParameterType{p1},
+		ReturnTypes:   []ParameterType{},
+	}
+
+	f2 := FuncType{
+		Name:          "TestFunc2",
+		ArgumentTypes: []ParameterType{p1, p2},
+		ReturnTypes:   []ParameterType{r1, r2},
+	}
+
+	it := &InterfaceType{
+		Name:        "TestInterface",
+		PackageName: "test",
+		Funcs:       []FuncType{f1, f2},
+	}
+
+	g := Generator{
+		PackageName: "test",
+	}
+	g.appendMockStruct(it)
+	act := pretty(t, g.buf.Bytes())
 	if !bytes.Equal(act, ex) {
 		t.Errorf("Not Matched: \n%v", diff.LineDiff(string(ex), string(act)))
 	}

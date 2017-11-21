@@ -5,7 +5,9 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"log"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -24,15 +26,64 @@ type InterfaceType struct {
 }
 
 type FuncType struct {
-	ArgumentTypes []parameterType
-	ReturnTypes   []parameterType
+	ArgumentTypes []ParameterType
+	ReturnTypes   []ParameterType
 	PackageName   string
 	Comments      comments
 	Name          string
 }
 
-type parameterType struct {
-	Type string
+type ParameterType struct {
+	Decorator           string
+	DeclaredPackageName string
+	Selector            string
+	Type                string
+}
+
+var reg = regexp.MustCompile("^[a-z].*")
+
+func (p *ParameterType) RelativeName(currentPackageName string) string {
+	if reg.MatchString(p.Type) {
+		return p.Decorator + p.Type
+	}
+
+	if p.DeclaredPackageName == currentPackageName && p.Selector == "" {
+		return p.Decorator + p.Type
+	}
+	if p.DeclaredPackageName != currentPackageName && p.Selector == "" {
+		return fmt.Sprintf("%s%s.%s", p.Decorator, p.DeclaredPackageName, p.Type)
+	}
+	if p.Selector == currentPackageName {
+		return p.Decorator + p.Type
+	}
+	return fmt.Sprintf("%s%s.%s", p.Decorator, p.Selector, p.Type)
+}
+
+func FromExprToParameterType(packageName string, expr ast.Expr) *ParameterType {
+	var selectorType, typ string
+
+	if idx, ok := expr.(*ast.SelectorExpr); ok {
+		selectorType = fmt.Sprintf("%v", idx.X)
+		typ = fmt.Sprintf("%v", idx.Sel)
+	} else if star, ok := expr.(*ast.StarExpr); ok {
+		p := FromExprToParameterType(packageName, star.X)
+		p.Decorator = p.Decorator + "*"
+		return p
+	} else if arr, ok := expr.(*ast.ArrayType); ok {
+		p := FromExprToParameterType(packageName, arr.Elt)
+		p.Decorator = p.Decorator + "[]"
+		return p
+	} else if idnt, ok := expr.(*ast.Ident); ok {
+		typ = idnt.Name
+	} else {
+		log.Fatal("unsupported expression")
+	}
+
+	return &ParameterType{
+		DeclaredPackageName: packageName,
+		Selector:            selectorType,
+		Type:                typ,
+	}
 }
 
 func NewPackageParser(pack string) *PackageParser {
@@ -44,7 +95,7 @@ func NewPackageParser(pack string) *PackageParser {
 func (p *PackageParser) FindDicon(filenames []string) (*InterfaceType, error) {
 	result := make([]InterfaceType, 0, len(filenames))
 	for _, filename := range filenames {
-		its, err := findDicon(filepath.Join(p.PackageName, filename), nil, "+DICON")
+		its, err := findDicon(p.PackageName, filepath.Join(p.PackageName, filename), nil, "+DICON")
 		if err != nil {
 			return nil, err
 		}
@@ -76,6 +127,20 @@ func (p *PackageParser) FindConstructors(filenames []string, funcnames []string)
 	return result, nil
 }
 
+func (p *PackageParser) FindDependencyInterfaces(filenames []string, targetNames []string) ([]InterfaceType, error) {
+	var result []InterfaceType
+
+	for _, f := range filenames {
+		r, err := parseDependencyFuncs(p.PackageName, targetNames, f, nil)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, r...)
+	}
+
+	return result, nil
+}
+
 func findConstructors(packageName string, from string, src interface{}, funcnames []string) ([]FuncType, error) {
 	f, err := parser.ParseFile(token.NewFileSet(), filepath.Join(packageName, from), src, parser.ParseComments)
 	if err != nil {
@@ -95,16 +160,11 @@ func findConstructors(packageName string, from string, src interface{}, funcname
 		for _, name := range funcnames {
 			s := fmt.Sprintf("New%s", name)
 			if s == fun.Name.Name && name == fmt.Sprintf("%v", resultType.Type) {
-				args := make([]parameterType, 0, len(fun.Type.Params.List))
+				args := make([]ParameterType, 0, len(fun.Type.Params.List))
 				for _, p := range fun.Type.Params.List {
-					args = append(args, parameterType{
-						Type: parseTypeExpr(p.Type),
-					})
+					args = append(args, *FromExprToParameterType(packageName, p.Type))
 				}
-				rt := parameterType{
-					Type: parseTypeExpr(resultType.Type),
-				}
-				returns := []parameterType{rt}
+				returns := []ParameterType{*FromExprToParameterType(packageName, resultType.Type)}
 
 				funcs = append(funcs, FuncType{
 					ArgumentTypes: args,
@@ -120,7 +180,7 @@ func findConstructors(packageName string, from string, src interface{}, funcname
 	return funcs, nil
 }
 
-func findDicon(from string, src interface{}, annotation string) ([]InterfaceType, error) {
+func findDicon(packageName string, from string, src interface{}, annotation string) ([]InterfaceType, error) {
 	f, err := parser.ParseFile(token.NewFileSet(), from, src, parser.ParseComments)
 	if err != nil {
 		return nil, err
@@ -138,7 +198,7 @@ func findDicon(from string, src interface{}, annotation string) ([]InterfaceType
 		if !isAnnotated(comments, annotation) {
 			return true
 		}
-		it, ok := findInterface(g.Specs)
+		it, ok := findInterface(packageName, g.Specs)
 		if !ok {
 			return true
 		}
@@ -173,7 +233,7 @@ func isAnnotated(cs comments, annotation string) bool {
 	return false
 }
 
-func findInterface(specs []ast.Spec) (*InterfaceType, bool) {
+func findInterface(packageName string, specs []ast.Spec) (*InterfaceType, bool) {
 	it := &InterfaceType{}
 	var funcs []FuncType
 
@@ -191,19 +251,15 @@ func findInterface(specs []ast.Spec) (*InterfaceType, bool) {
 			}
 			ft := &FuncType{}
 
-			params := make([]parameterType, 0, len(f.Params.List))
+			params := make([]ParameterType, 0, len(f.Params.List))
 			for _, p := range f.Params.List {
-				params = append(params, parameterType{
-					Type: parseTypeExpr(p.Type),
-				})
+				params = append(params, *FromExprToParameterType(packageName, p.Type))
 			}
 			ft.ArgumentTypes = params
 
-			returns := make([]parameterType, 0, len(f.Results.List))
+			returns := make([]ParameterType, 0, len(f.Results.List))
 			for _, r := range f.Results.List {
-				returns = append(returns, parameterType{
-					Type: parseTypeExpr(r.Type),
-				})
+				returns = append(returns, *FromExprToParameterType(packageName, r.Type))
 			}
 			ft.ReturnTypes = returns
 
@@ -218,12 +274,32 @@ func findInterface(specs []ast.Spec) (*InterfaceType, bool) {
 	return it, true
 }
 
-func parseTypeExpr(expr ast.Expr) string {
-	ret := ""
-	if idx, ok := expr.(*ast.SelectorExpr); ok {
-		ret = fmt.Sprintf("%v", idx.Sel)
-	} else {
-		ret = fmt.Sprintf("%v", expr)
+func parseDependencyFuncs(packagename string, targetNames []string, from string, src interface{}) ([]InterfaceType, error) {
+	var res []InterfaceType
+	f, err := parser.ParseFile(token.NewFileSet(), packagename+"/"+from, src, parser.ParseComments)
+	if err != nil {
+		return nil, err
 	}
-	return ret
+	ast.Inspect(f, func(n ast.Node) bool {
+		g, ok := n.(*ast.GenDecl)
+		if !ok || g.Tok != token.TYPE {
+			return true
+		}
+		it, ok := findInterface(packagename, g.Specs)
+		if !ok || !contains(it.Name, targetNames) {
+			return true
+		}
+		res = append(res, *it)
+		return true
+	})
+	return res, nil
+}
+
+func contains(s string, source []string) bool {
+	for _, str := range source {
+		if s == str {
+			return true
+		}
+	}
+	return false
 }

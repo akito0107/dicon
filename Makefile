@@ -4,7 +4,7 @@ REVISON := $(shell git rev-parse --short HEAD)
 LDFLAGS := -X 'main.version=$(VERSION)' -X 'main.revision=$(REVISION)'
 PACKAGENAME := github.com/akito0107/dicon
 
-.PHONY: setup dep test/internal main clean install
+.PHONY: setup dep test test/internal main clean install lint lint/internal
 
 all: main
 
@@ -14,6 +14,7 @@ main:
 ## Install dependencies
 setup:
 	go get -u github.com/golang/dep/cmd/dep
+	go get -u github.com/golang/lint/golint
 
 ## install go dependencies
 dep:
@@ -26,6 +27,14 @@ install:
 
 test/internal:
 	go test -v -cover -race $(PACKAGENAME)/internal
+
+lint: lint/main lint/internal
+
+lint/main:
+	golint main.go
+
+lint/internal:
+	golint internal
 
 ## remove build files
 clean:

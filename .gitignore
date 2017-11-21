@@ -90,4 +90,6 @@ fabric.properties
 # End of https://www.gitignore.io/api/intellij
 
 sample/dicon_gen.go
+sample/dicon_gen_test.go
+mock/dicon_mock.go
 bin/dicon

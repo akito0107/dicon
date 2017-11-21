@@ -8,6 +8,24 @@
   revision = "c7f18ee00883bfd3b00e0a2bf7607827e0148ad4"
 
 [[projects]]
+  name = "github.com/k0kubun/pp"
+  packages = ["."]
+  revision = "027a6d1765d673d337e687394dbe780dd64e2a1e"
+  version = "v2.3.0"
+
+[[projects]]
+  name = "github.com/mattn/go-colorable"
+  packages = ["."]
+  revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
+  version = "v0.0.9"
+
+[[projects]]
+  name = "github.com/mattn/go-isatty"
+  packages = ["."]
+  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
+  version = "v0.0.3"
+
+[[projects]]
   branch = "master"
   name = "github.com/sergi/go-diff"
   packages = ["diffmatchpatch"]
@@ -21,6 +39,12 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/sys"
+  packages = ["unix"]
+  revision = "0dd5e194bbf5eb84a39666eb4c98a4d007e4203a"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/tools"
   packages = ["go/ast/astutil","imports"]
   revision = "9c57063f678bcbddd0bd7d5c26fdcc3f8ffee056"
@@ -28,6 +52,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "08ae2717e8fcbe3eb6f6ef6151b0cf109693c843683e88286f9dbf1b41b63c75"
+  inputs-digest = "2f31373b6354cc08df79339f1ce874825040c8541db68674e89b0e0df8994a4e"
   solver-name = "gps-cdcl"
   solver-version = 1
