@@ -155,15 +155,15 @@ Generated mocks have `XXXMock` func as a field (XXX is same as interface method 
 In testing, you can freely rewrite behaviors by assigning `func` to this field.
 ```go
 func TestUserService_Find(t *testing.T) {
-	mock := mock.NewUserRepositoryMock()
-	mock.FindByIdMock = func(id int64) (*entity.User, error) {
+	m := mock.NewUserRepositoryMock()
+	m.FindByIdMock = func(id int64) (*entity.User, error) {
 		
 		// mocking logic....
 		
 		return user, nil
 	}
 	
-	service := NewUserService(UserRepository(mock)) // passing the mock
+	service := NewUserService(m) // passing the mock
 	
 	if _, err := service.Find(id); err != nil {
 		t.Error(err)
