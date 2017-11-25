@@ -7,8 +7,8 @@ type SampleComponent interface {
 type sampleComponent struct {
 }
 
-func NewSampleComponent() SampleComponent {
-	return &sampleComponent{}
+func NewSampleComponent() (SampleComponent, error) {
+	return &sampleComponent{}, nil
 }
 
 func (s *sampleComponent) Exec() error {

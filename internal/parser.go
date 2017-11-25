@@ -7,6 +7,8 @@ import (
 	"go/token"
 	"path/filepath"
 	"strings"
+
+	"github.com/k0kubun/pp"
 )
 
 type PackageParser struct {
@@ -98,18 +100,25 @@ func findConstructors(packageName string, from string, src interface{}, funcname
 		if !ok {
 			return true
 		}
-		if fun.Type.Results == nil || len(fun.Type.Results.List) != 1 {
+		if fun.Type.Results == nil || (len(fun.Type.Results.List) != 1 && len(fun.Type.Results.List) != 2) {
 			return true
 		}
 		resultType := fun.Type.Results.List[0]
 		for _, name := range funcnames {
 			s := fmt.Sprintf("New%s", name)
 			if s == fun.Name.Name && name == fmt.Sprintf("%v", resultType.Type) {
+				if len(fun.Type.Results.List) == 2 && fmt.Sprintf("%v", fun.Type.Results.List[1].Type) != "error" {
+					pp.Println(fun.Type.Results.List[1])
+					return true
+				}
 				args := make([]ParameterType, 0, len(fun.Type.Params.List))
 				for _, p := range fun.Type.Params.List {
 					args = append(args, *NewParameterType(packageName, p.Type))
 				}
 				returns := []ParameterType{*NewParameterType(packageName, resultType.Type)}
+				if len(fun.Type.Results.List) == 2 {
+					returns = append(returns, ParameterType{DeclaredPackageName: packageName, Type: "error"})
+				}
 
 				funcs = append(funcs, FuncType{
 					ArgumentTypes: args,

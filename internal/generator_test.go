@@ -15,7 +15,10 @@ func TestGenerator_appendHeader(t *testing.T) {
 
 	package main
 
-	import "log"
+	import (
+		"log"
+		"github.com/pkg/errors"
+	)
 `))
 	g := &Generator{PackageName: "main"}
 	it := &InterfaceType{
@@ -54,17 +57,23 @@ func TestGenerator_appendStructDef(t *testing.T) {
 }
 
 func TestGenerator_appendMethods(t *testing.T) {
-	ex := pretty(t, []byte(`func (d *dicontainer) SampleComponent() SampleComponent {
+	ex := pretty(t, []byte(`func (d *dicontainer) SampleComponent() (SampleComponent, error) {
 	if i, ok := d.store["SampleComponent"]; ok {
 		if instance, ok := i.(SampleComponent); ok {
-			return instance
+			return instance, nil
 		}
-		log.Fatal("cached instance is polluted")
+		return nil, fmt.Errorf("invalid instance is cached %v", instance)
 	}
-	dep0 := d.Dependency()
-	instance := NewSampleComponent(dep0)
+	dep0, err := d.Dependency()
+	if err != nil {
+		return nil, errors.Wrap(err, "Resolve Dependency failed at DICON")
+	}
+	instance, err := NewSampleComponent(dep0)
+	if err != nil {
+		return nil, errors.Wrap(err, "Creation SampleComponent failed at DICON")
+	}
 	d.store["SampleComponent"] = instance
-	return instance
+	return instance, nil
 }
 `))
 	p1 := ParameterType{
@@ -75,11 +84,15 @@ func TestGenerator_appendMethods(t *testing.T) {
 		DeclaredPackageName: "test",
 		src:                 createAst(t, "SampleComponent"),
 	}
+	e1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "error",
+	}
 
 	f1 := FuncType{
 		Name:          "SampleComponent",
 		ArgumentTypes: []ParameterType{p1},
-		ReturnTypes:   []ParameterType{p2},
+		ReturnTypes:   []ParameterType{p2, e1},
 		PackageName:   "test",
 	}
 
@@ -89,24 +102,32 @@ func TestGenerator_appendMethods(t *testing.T) {
 
 	act := pretty(t, g.buf.Bytes())
 	if !bytes.Equal(act, ex) {
-		t.Errorf("Not Matched: ex: ---\n%s\n---, actual: ---\n%s\n---", ex, act)
 		t.Errorf("Not Matched: \n%v", diff.LineDiff(string(ex), string(act)))
 	}
 }
 
 func TestGenerator_appendMethodsMultipleDependencies(t *testing.T) {
-	ex := pretty(t, []byte(`func (d *dicontainer) SampleComponent() SampleComponent {
+	ex := pretty(t, []byte(`func (d *dicontainer) SampleComponent() (SampleComponent, error) {
 	if i, ok := d.store["SampleComponent"]; ok {
 		if instance, ok := i.(SampleComponent); ok {
-			return instance
+			return instance, nil
 		}
-		log.Fatal("cached instance is polluted")
+		return nil, fmt.Errorf("invalid instance is cached %v", instance)
 	}
-	dep0 := d.Dependency1()
-	dep1 := d.Dependency2()
-	instance := NewSampleComponent(dep0, dep1)
+	dep0, err := d.Dependency1()
+	if err != nil {
+		return nil, errors.Wrap(err, "Resolve Dependency1 failed at DICON")
+	}
+	dep1, err := d.Dependency2()
+	if err != nil {
+		return nil, errors.Wrap(err, "Resolve Dependency2 failed at DICON")
+	}
+	instance, err := NewSampleComponent(dep0, dep1)
+	if err != nil {
+		return nil, errors.Wrap(err, "Creation SampleComponent failed at DICON")
+	}
 	d.store["SampleComponent"] = instance
-	return instance
+	return instance, nil
 }
 `))
 	p1 := ParameterType{
@@ -121,11 +142,14 @@ func TestGenerator_appendMethodsMultipleDependencies(t *testing.T) {
 		DeclaredPackageName: "test",
 		src:                 createAst(t, "SampleComponent"),
 	}
-
+	e1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "error",
+	}
 	f1 := FuncType{
 		Name:          "SampleComponent",
 		ArgumentTypes: []ParameterType{p1, p2},
-		ReturnTypes:   []ParameterType{r1},
+		ReturnTypes:   []ParameterType{r1, e1},
 		PackageName:   "test",
 	}
 
@@ -144,7 +168,10 @@ func TestGenerate(t *testing.T) {
 
 	package test
 
-	import "log"
+	import (
+		"log"
+		"github.com/pkg/errors"
+	)
 
 	type dicontainer struct {
 		store map[string]interface{}
@@ -156,18 +183,27 @@ func TestGenerate(t *testing.T) {
 		}
 	}
 
-	func (d *dicontainer) SampleComponent() SampleComponent {
+	func (d *dicontainer) SampleComponent() (SampleComponent, error) {
 		if i, ok := d.store["SampleComponent"]; ok {
 			if instance, ok := i.(SampleComponent); ok {
-				return instance
+				return instance, nil
 			}
-			log.Fatal("cached instance is polluted")
+			return nil, fmt.Errorf("invalid instance is cached %v", instance)
 		}
-		dep0 := d.Dependency1()
-		dep1 := d.Dependency2()
-		instance := NewSampleComponent(dep0, dep1)
+		dep0, err := d.Dependency1()
+		if err != nil {
+			return nil, errors.Wrap(err, "Resolve Dependency1 failed at DICON")
+		}
+		dep1, err := d.Dependency2()
+		if err != nil {
+			return nil, errors.Wrap(err, "Resolve Dependency2 failed at DICON")
+		}
+		instance, err := NewSampleComponent(dep0, dep1)
+		if err != nil {
+			return nil, errors.Wrap(err, "Creation SampleComponent failed at DICON")
+		}
 		d.store["SampleComponent"] = instance
-		return instance
+		return instance, nil
 	}`))
 
 	p1 := ParameterType{
@@ -182,11 +218,14 @@ func TestGenerate(t *testing.T) {
 		DeclaredPackageName: "test",
 		src:                 createAst(t, "SampleComponent"),
 	}
-
+	e1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "error",
+	}
 	f1 := FuncType{
 		Name:          "SampleComponent",
 		ArgumentTypes: []ParameterType{p1, p2},
-		ReturnTypes:   []ParameterType{r1},
+		ReturnTypes:   []ParameterType{r1, e1},
 		PackageName:   "test",
 	}
 
@@ -216,6 +255,7 @@ func TestGenerateSubPackage(t *testing.T) {
 		"log"
 
 		"github.com/akito0107/dicon/sample"
+		"github.com/pkg/errors"
 	)
 
 	type dicontainer struct {
@@ -228,18 +268,27 @@ func TestGenerateSubPackage(t *testing.T) {
 		}
 	}
 
-	func (d *dicontainer) SampleComponent() sample.SampleComponent {
+	func (d *dicontainer) SampleComponent() (sample.SampleComponent, error) {
 		if i, ok := d.store["SampleComponent"]; ok {
 			if instance, ok := i.(sample.SampleComponent); ok {
-				return instance
+				return instance, nil
 			}
-			log.Fatal("cached instance is polluted")
+			return nil, fmt.Errorf("invalid instance is cached %v", instance)
 		}
-		dep0 := d.Dependency1()
-		dep1 := d.Dependency2()
-		instance := sample.NewSampleComponent(dep0, dep1)
+		dep0, err := d.Dependency1()
+		if err != nil {
+			return nil, errors.Wrap(err, "Resolve Dependency1 failed at DICON")
+		}
+		dep1, err := d.Dependency2()
+		if err != nil {
+			return nil, errors.Wrap(err, "Resolve Dependency2 failed at DICON")
+		}
+		instance, err := sample.NewSampleComponent(dep0, dep1)
+		if err != nil {
+			return nil, errors.Wrap(err, "Creation SampleComponent failed at DICON")
+		}
 		d.store["SampleComponent"] = instance
-		return instance
+		return instance, nil
 	}`))
 
 	p1 := ParameterType{
@@ -254,11 +303,14 @@ func TestGenerateSubPackage(t *testing.T) {
 		DeclaredPackageName: "sample",
 		src:                 createAst(t, "SampleComponent"),
 	}
-
+	e1 := ParameterType{
+		DeclaredPackageName: "test",
+		Type:                "error",
+	}
 	f1 := FuncType{
 		Name:          "SampleComponent",
 		ArgumentTypes: []ParameterType{p1, p2},
-		ReturnTypes:   []ParameterType{r1},
+		ReturnTypes:   []ParameterType{r1, e1},
 		PackageName:   "sample",
 	}
 

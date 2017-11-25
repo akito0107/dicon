@@ -8,8 +8,8 @@ type Sample2Component interface {
 type sampleComponent struct {
 }
 
-func NewSample2Component() Sample2Component {
-	return &sampleComponent{}
+func NewSample2Component() (Sample2Component, error) {
+	return &sampleComponent{}, nil
 }
 
 func (s *sampleComponent) Exec() error {
