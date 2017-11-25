@@ -16,13 +16,11 @@ type Ex2 interface {
 }
 `
 
-// must retrieve annotated interface
-func TestParse(t *testing.T) {
+func TestPackageParser_findDicon(t *testing.T) {
 	its, err := findDicon("main", "/tmp/tmp.go", TEST_FILE1, "+DICON")
 	if err != nil {
 		t.Error(err)
 	}
-
 	if len(its) != 1 {
 		t.Errorf("must 1 interface but %d\n", len(its))
 	}
@@ -30,45 +28,33 @@ func TestParse(t *testing.T) {
 	if len(funcs) != 2 {
 		t.Errorf("must 2 functions but %d\n", len(funcs))
 	}
-}
-
-func TestParseWithFuncNames(t *testing.T) {
-	its, _ := findDicon("main", "/tmp/tmp.go", TEST_FILE1, "+DICON")
 	for _, it := range its {
-		for _, f := range it.Funcs {
-			if f.Name != "Exec" && f.Name != "Exec2" {
-				t.Errorf("function name must be Exec, but : %s", f.Name)
-			}
-		}
-	}
-}
 
-func TestParseWithFuncParameters(t *testing.T) {
-	its, _ := findDicon("main", "/tmp/tmp.go", TEST_FILE1, "+DICON")
-	for _, it := range its {
 		f := it.Funcs[0]
-		if f.Name == "Exec2" {
-			if f.ArgumentTypes[0].ConvertName("main") != "int" {
-				t.Errorf("argument type must be int, but : %s", f.Name)
-			}
+		// test function names
+		if f.Name != "Exec" && f.Name != "Exec2" {
+			t.Errorf("function name must be Exec, but : %s", f.Name)
 		}
-	}
-}
 
-func TestParseWithReturnParameters(t *testing.T) {
-	its, _ := findDicon("main", "/tmp/tmp.go", TEST_FILE1, "+DICON")
-	for _, it := range its {
-		f := it.Funcs[0]
 		if f.Name == "Exec" {
-			if got := f.ReturnTypes[0].ConvertName("main"); got != "error" {
-				t.Errorf("return type must be error, but : %s", got)
+			if len(f.ArgumentTypes) != 0 {
+				t.Errorf("Exec ArgumentType must be blank but: %d", len(f.ArgumentTypes))
+			}
+			if got := f.ReturnTypes[0].Type; got != "error" {
+				t.Errorf("Exec return type must be error, but : %s", got)
 			}
 		}
+
+		// test argument type
 		if f.Name == "Exec2" {
-			if got := f.ReturnTypes[0].ConvertName("main"); got != "string" {
-				t.Errorf("return type must be string, but : %s", got)
+			if f.ArgumentTypes[0].Type != "int" {
+				t.Errorf("Exec2 argument type must be int, but : %s", f.Name)
+			}
+			if got := f.ReturnTypes[0].Type; got != "string" {
+				t.Errorf("Exec2 return type must be string, but : %s", got)
 			}
 		}
+
 	}
 }
 
