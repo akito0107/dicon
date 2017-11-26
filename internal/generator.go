@@ -82,10 +82,10 @@ func (g *Generator) appendMethod(funcs []FuncType, _ string) {
 		}
 
 		returnType := f.ReturnTypes[0]
-		g.Printf("%s {\n", returnType.RelativeName(g.PackageName))
+		g.Printf("%s {\n", returnType.ConvertName(g.PackageName))
 
 		g.Printf("if i, ok := d.store[\"%s\"]; ok {\n", f.Name)
-		g.Printf("if instance, ok := i.(%s); ok {\n", returnType.RelativeName(g.PackageName))
+		g.Printf("if instance, ok := i.(%s); ok {\n", returnType.ConvertName(g.PackageName))
 		g.Printf("return instance\n")
 		g.Printf("}\n")
 		g.Printf("log.Fatal(\"cached instance is polluted\")")
@@ -93,7 +93,7 @@ func (g *Generator) appendMethod(funcs []FuncType, _ string) {
 
 		dep := make([]string, 0, len(f.ArgumentTypes))
 		for i, a := range f.ArgumentTypes {
-			g.Printf("dep%d := d.%s()\n", i, a.Type)
+			g.Printf("dep%d := d.%s()\n", i, a.SimpleName())
 			dep = append(dep, fmt.Sprintf("dep%d", i))
 		}
 
@@ -112,13 +112,13 @@ func (g *Generator) appendMockStruct(it *InterfaceType) {
 	for _, f := range it.Funcs {
 		var ags []string
 		for i, a := range f.ArgumentTypes {
-			ags = append(ags, fmt.Sprintf("a%d %s", i, a.RelativeName(g.PackageName)))
+			ags = append(ags, fmt.Sprintf("a%d %s", i, a.ConvertName(g.PackageName)))
 		}
 		args[f.Name] = ags
 
 		var rets []string
 		for _, r := range f.ReturnTypes {
-			rets = append(rets, r.RelativeName(g.PackageName))
+			rets = append(rets, r.ConvertName(g.PackageName))
 		}
 		returns[f.Name] = rets
 		g.Printf("%sMock func(%s)", f.Name, strings.Join(ags, ","))

@@ -5,9 +5,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"log"
 	"path/filepath"
-	"regexp"
 	"strings"
 )
 
@@ -31,59 +29,6 @@ type FuncType struct {
 	PackageName   string
 	Comments      comments
 	Name          string
-}
-
-type ParameterType struct {
-	Decorator           string
-	DeclaredPackageName string
-	Selector            string
-	Type                string
-}
-
-var reg = regexp.MustCompile("^[a-z].*")
-
-func (p *ParameterType) RelativeName(currentPackageName string) string {
-	if reg.MatchString(p.Type) {
-		return p.Decorator + p.Type
-	}
-
-	if p.DeclaredPackageName == currentPackageName && p.Selector == "" {
-		return p.Decorator + p.Type
-	}
-	if p.DeclaredPackageName != currentPackageName && p.Selector == "" {
-		return fmt.Sprintf("%s%s.%s", p.Decorator, p.DeclaredPackageName, p.Type)
-	}
-	if p.Selector == currentPackageName {
-		return p.Decorator + p.Type
-	}
-	return fmt.Sprintf("%s%s.%s", p.Decorator, p.Selector, p.Type)
-}
-
-func FromExprToParameterType(packageName string, expr ast.Expr) *ParameterType {
-	var selectorType, typ string
-
-	if idx, ok := expr.(*ast.SelectorExpr); ok {
-		selectorType = fmt.Sprintf("%v", idx.X)
-		typ = fmt.Sprintf("%v", idx.Sel)
-	} else if star, ok := expr.(*ast.StarExpr); ok {
-		p := FromExprToParameterType(packageName, star.X)
-		p.Decorator = p.Decorator + "*"
-		return p
-	} else if arr, ok := expr.(*ast.ArrayType); ok {
-		p := FromExprToParameterType(packageName, arr.Elt)
-		p.Decorator = p.Decorator + "[]"
-		return p
-	} else if idnt, ok := expr.(*ast.Ident); ok {
-		typ = idnt.Name
-	} else {
-		log.Fatal("unsupported expression")
-	}
-
-	return &ParameterType{
-		DeclaredPackageName: packageName,
-		Selector:            selectorType,
-		Type:                typ,
-	}
 }
 
 func NewPackageParser(pack string) *PackageParser {
@@ -162,9 +107,9 @@ func findConstructors(packageName string, from string, src interface{}, funcname
 			if s == fun.Name.Name && name == fmt.Sprintf("%v", resultType.Type) {
 				args := make([]ParameterType, 0, len(fun.Type.Params.List))
 				for _, p := range fun.Type.Params.List {
-					args = append(args, *FromExprToParameterType(packageName, p.Type))
+					args = append(args, *NewParameterType(packageName, p.Type))
 				}
-				returns := []ParameterType{*FromExprToParameterType(packageName, resultType.Type)}
+				returns := []ParameterType{*NewParameterType(packageName, resultType.Type)}
 
 				funcs = append(funcs, FuncType{
 					ArgumentTypes: args,
@@ -253,13 +198,13 @@ func findInterface(packageName string, specs []ast.Spec) (*InterfaceType, bool) 
 
 			params := make([]ParameterType, 0, len(f.Params.List))
 			for _, p := range f.Params.List {
-				params = append(params, *FromExprToParameterType(packageName, p.Type))
+				params = append(params, *NewParameterType(packageName, p.Type))
 			}
 			ft.ArgumentTypes = params
 
 			returns := make([]ParameterType, 0, len(f.Results.List))
 			for _, r := range f.Results.List {
-				returns = append(returns, *FromExprToParameterType(packageName, r.Type))
+				returns = append(returns, *NewParameterType(packageName, r.Type))
 			}
 			ft.ReturnTypes = returns
 

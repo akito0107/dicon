@@ -1,10 +1,6 @@
 package internal
 
-import (
-	"testing"
-
-	"github.com/andreyvit/diff"
-)
+import "testing"
 
 var TEST_FILE1 = `
 package main
@@ -52,7 +48,7 @@ func TestParseWithFuncParameters(t *testing.T) {
 	for _, it := range its {
 		f := it.Funcs[0]
 		if f.Name == "Exec2" {
-			if f.ArgumentTypes[0].Type != "int" {
+			if f.ArgumentTypes[0].ConvertName("main") != "int" {
 				t.Errorf("argument type must be int, but : %s", f.Name)
 			}
 		}
@@ -64,12 +60,12 @@ func TestParseWithReturnParameters(t *testing.T) {
 	for _, it := range its {
 		f := it.Funcs[0]
 		if f.Name == "Exec" {
-			if got := f.ReturnTypes[0].Type; got != "error" {
+			if got := f.ReturnTypes[0].ConvertName("main"); got != "error" {
 				t.Errorf("return type must be error, but : %s", got)
 			}
 		}
 		if f.Name == "Exec2" {
-			if got := f.ReturnTypes[0].Type; got != "string" {
+			if got := f.ReturnTypes[0].ConvertName("main"); got != "string" {
 				t.Errorf("return type must be string, but : %s", got)
 			}
 		}
@@ -115,11 +111,11 @@ func TestPackageParser_FindConstructors(t *testing.T) {
 
 	fun := fs[0]
 
-	if len(fun.ReturnTypes) != 1 || fun.ReturnTypes[0].Type != "SampleComponent" {
+	if len(fun.ReturnTypes) != 1 || fun.ReturnTypes[0].ConvertName("test") != "SampleComponent" {
 		t.Errorf("return type: %v wrong", fun.ReturnTypes)
 	}
 
-	if len(fun.ArgumentTypes) != 1 || fun.ArgumentTypes[0].Type != "Dependency" {
+	if len(fun.ArgumentTypes) != 1 || fun.ArgumentTypes[0].ConvertName("test") != "Dependency" {
 		t.Errorf("arg type: %v wrong", fun.ArgumentTypes)
 	}
 
@@ -163,74 +159,7 @@ func TestPackageParer_parseDependencyFuncs(t *testing.T) {
 		t.Fatalf("Dependency func has only Run method")
 	}
 
-	if ds[0].Funcs[0].ReturnTypes[0].Type != "error" {
+	if ds[0].Funcs[0].ReturnTypes[0].ConvertName("test") != "error" {
 		t.Errorf("Return type must be error")
 	}
-}
-
-func TestParameterType_RelativeName(t *testing.T) {
-	t.Run("same package", func(t *testing.T) {
-		p := &ParameterType{
-			DeclaredPackageName: "test",
-			Selector:            "",
-			Type:                "Test",
-		}
-
-		if "Test" != p.RelativeName("test") {
-			t.Errorf("Not Matched: \n%v\n", diff.LineDiff("Test", p.RelativeName("test")))
-		}
-	})
-
-	t.Run("same package but has a selector", func(t *testing.T) {
-		p := &ParameterType{
-			DeclaredPackageName: "test",
-			Selector:            "sample",
-			Type:                "Test",
-		}
-		if "sample.Test" != p.RelativeName("test") {
-			t.Errorf("Not Matched: \n%v\n", diff.LineDiff("sample.Test", p.RelativeName("test")))
-		}
-	})
-
-	t.Run("different package", func(t *testing.T) {
-		p := &ParameterType{
-			DeclaredPackageName: "test",
-			Type:                "Test",
-		}
-		if "test.Test" != p.RelativeName("sample") {
-			t.Errorf("Not Matched: \n%v\n", diff.LineDiff("test.Test", p.RelativeName("sample")))
-		}
-	})
-
-	t.Run("different package also has a selector", func(t *testing.T) {
-		p := &ParameterType{
-			DeclaredPackageName: "test",
-			Selector:            "select",
-			Type:                "Test",
-		}
-		if "select.Test" != p.RelativeName("sample") {
-			t.Errorf("Not Matched: \n%v\n", diff.LineDiff("test.Test", p.RelativeName("sample")))
-		}
-	})
-
-	t.Run("selector name same as current package", func(t *testing.T) {
-		p := &ParameterType{
-			DeclaredPackageName: "test",
-			Selector:            "select",
-			Type:                "Test",
-		}
-		if "Test" != p.RelativeName("select") {
-			t.Errorf("Not Matched: \n%v\n", diff.LineDiff("Test", p.RelativeName("select")))
-		}
-	})
-
-	t.Run("builtin type", func(t *testing.T) {
-		p := &ParameterType{
-			DeclaredPackageName: "test",
-			Type:                "string",
-		}
-		if "string" != p.RelativeName("select") {
-			t.Errorf("Not Matched: \n%v\n", diff.LineDiff("string", p.RelativeName("select")))
-		}
-	})
 }
