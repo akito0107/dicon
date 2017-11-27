@@ -196,15 +196,19 @@ func findInterface(packageName string, specs []ast.Spec) (*InterfaceType, bool) 
 			}
 			ft := &FuncType{}
 
-			params := make([]ParameterType, 0, len(f.Params.List))
-			for _, p := range f.Params.List {
-				params = append(params, *NewParameterType(packageName, p.Type))
+			var params []ParameterType
+			if f.Params != nil {
+				for _, p := range f.Params.List {
+					params = append(params, *NewParameterType(packageName, p.Type))
+				}
 			}
 			ft.ArgumentTypes = params
 
-			returns := make([]ParameterType, 0, len(f.Results.List))
-			for _, r := range f.Results.List {
-				returns = append(returns, *NewParameterType(packageName, r.Type))
+			var returns []ParameterType
+			if f.Results != nil {
+				for _, r := range f.Results.List {
+					returns = append(returns, *NewParameterType(packageName, r.Type))
+				}
 			}
 			ft.ReturnTypes = returns
 
