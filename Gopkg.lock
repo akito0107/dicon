@@ -41,13 +41,13 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "0dd5e194bbf5eb84a39666eb4c98a4d007e4203a"
+  revision = "4ff8c001ce4cc464e644b922325097228fce14d8"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/tools"
   packages = ["go/ast/astutil","imports"]
-  revision = "9c57063f678bcbddd0bd7d5c26fdcc3f8ffee056"
+  revision = "6d70fb2e85323e81c89374331d3d2b93304faa36"
 
 [solve-meta]
   analyzer-name = "dep"

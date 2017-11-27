@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"testing"
 
+	"go/ast"
+	"go/parser"
+
 	"github.com/andreyvit/diff"
 )
 
@@ -66,11 +69,11 @@ func TestGenerator_appendMethods(t *testing.T) {
 `))
 	p1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Dependency",
+		src:                 createAst(t, "Dependency"),
 	}
 	p2 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "SampleComponent",
+		src:                 createAst(t, "SampleComponent"),
 	}
 
 	f1 := FuncType{
@@ -108,15 +111,15 @@ func TestGenerator_appendMethodsMultipleDependencies(t *testing.T) {
 `))
 	p1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Dependency1",
+		src:                 createAst(t, "Dependency1"),
 	}
 	p2 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Dependency2",
+		src:                 createAst(t, "Dependency2"),
 	}
 	r1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "SampleComponent",
+		src:                 createAst(t, "SampleComponent"),
 	}
 
 	f1 := FuncType{
@@ -169,15 +172,15 @@ func TestGenerate(t *testing.T) {
 
 	p1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Dependency1",
+		src:                 createAst(t, "Dependency1"),
 	}
 	p2 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Dependency2",
+		src:                 createAst(t, "Dependency2"),
 	}
 	r1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "SampleComponent",
+		src:                 createAst(t, "SampleComponent"),
 	}
 
 	f1 := FuncType{
@@ -241,15 +244,15 @@ func TestGenerateSubPackage(t *testing.T) {
 
 	p1 := ParameterType{
 		DeclaredPackageName: "sample",
-		Type:                "Dependency1",
+		src:                 createAst(t, "Dependency1"),
 	}
 	p2 := ParameterType{
 		DeclaredPackageName: "sample",
-		Type:                "Dependency2",
+		src:                 createAst(t, "Dependency2"),
 	}
 	r1 := ParameterType{
 		DeclaredPackageName: "sample",
-		Type:                "SampleComponent",
+		src:                 createAst(t, "SampleComponent"),
 	}
 
 	f1 := FuncType{
@@ -291,15 +294,15 @@ func TestAppendMockStruct(t *testing.T) {
 
 	p1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Arg1",
+		src:                 createAst(t, "Arg1"),
 	}
 	p2 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Arg2",
+		src:                 createAst(t, "Arg2"),
 	}
 	r1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Ret1",
+		src:                 createAst(t, "Ret1"),
 	}
 
 	f1 := FuncType{
@@ -344,19 +347,19 @@ func TestAppendMockStructMultipleFuncs(t *testing.T) {
 
 	p1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Arg1",
+		src:                 createAst(t, "Arg1"),
 	}
 	p2 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Arg2",
+		src:                 createAst(t, "Arg2"),
 	}
 	r1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Ret1",
+		src:                 createAst(t, "Ret1"),
 	}
 	r2 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Ret2",
+		src:                 createAst(t, "Ret2"),
 	}
 
 	f1 := FuncType{
@@ -407,21 +410,19 @@ func TestAppendMockStructMultipleFuncWithPackages(t *testing.T) {
 
 	p1 := ParameterType{
 		DeclaredPackageName: "test",
-		Selector:            "pak1",
-		Type:                "Arg1",
+		src:                 createAst(t, "pak1.Arg1"),
 	}
 	p2 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Arg2",
+		src:                 createAst(t, "Arg2"),
 	}
 	r1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "Ret1",
+		src:                 createAst(t, "Ret1"),
 	}
 	r2 := ParameterType{
 		DeclaredPackageName: "test",
-		Selector:            "pak2",
-		Type:                "Ret2",
+		src:                 createAst(t, "pak2.Ret2"),
 	}
 
 	f1 := FuncType{
@@ -450,4 +451,13 @@ func TestAppendMockStructMultipleFuncWithPackages(t *testing.T) {
 	if !bytes.Equal(act, ex) {
 		t.Errorf("Not Matched: \n%v", diff.LineDiff(string(ex), string(act)))
 	}
+}
+
+func createAst(t *testing.T, expr string) ast.Expr {
+	ex, err := parser.ParseExpr(expr)
+	if err != nil {
+		t.Fatal(ex)
+		return nil
+	}
+	return ex
 }
