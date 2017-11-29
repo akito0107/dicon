@@ -41,19 +41,19 @@ func TestPackageParser_findDicon(t *testing.T) {
 			if len(f.ArgumentTypes) != 0 {
 				t.Errorf("Exec ArgumentType must be blank but: %d", len(f.ArgumentTypes))
 			}
-			if got := f.ReturnTypes[0].Type; got != "error" {
+			if got := f.ReturnTypes[0].SimpleName(); got != "error" {
 				t.Errorf("Exec return type must be error, but : %s", got)
 			}
 		}
 
 		if f.Name == "Exec2" {
-			if f.ArgumentTypes[0].Type != "int" {
+			if f.ArgumentTypes[0].SimpleName() != "int" {
 				t.Errorf("Exec2 argument type must be int, but : %s", f.Name)
 			}
-			if got := f.ReturnTypes[0].Type; got != "string" {
+			if got := f.ReturnTypes[0].SimpleName(); got != "string" {
 				t.Errorf("Exec2 return type must be string, but : %s", got)
 			}
-			if got := f.ReturnTypes[1].Type; got != "error" {
+			if got := f.ReturnTypes[1].SimpleName(); got != "error" {
 				t.Errorf("Exec2 return type must be error, but : %s", got)
 			}
 		}
@@ -137,11 +137,11 @@ func TestPackageParser_FindConstructorsErrors(t *testing.T) {
 
 	fun := fs[0]
 
-	if len(fun.ReturnTypes) != 2 || fun.ReturnTypes[0].Type != "SampleComponent" || fun.ReturnTypes[1].Type != "error" {
-		t.Errorf("return type: %v wrong", fun.ReturnTypes)
+	if len(fun.ReturnTypes) != 2 || fun.ReturnTypes[0].SimpleName() != "SampleComponent" || fun.ReturnTypes[1].SimpleName() != "error" {
+		t.Errorf("return type: %s, %s wrong", fun.ReturnTypes[0].SimpleName(), fun.ReturnTypes[1].SimpleName())
 	}
 
-	if len(fun.ArgumentTypes) != 1 || fun.ArgumentTypes[0].Type != "Dependency" {
+	if len(fun.ArgumentTypes) != 1 || fun.ArgumentTypes[0].SimpleName() != "Dependency" {
 		t.Errorf("arg type: %v wrong", fun.ArgumentTypes)
 	}
 

@@ -86,7 +86,7 @@ func TestGenerator_appendMethods(t *testing.T) {
 	}
 	e1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "error",
+		src:                 createAst(t, "error"),
 	}
 
 	f1 := FuncType{
@@ -144,7 +144,7 @@ func TestGenerator_appendMethodsMultipleDependencies(t *testing.T) {
 	}
 	e1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "error",
+		src:                 createAst(t, "error"),
 	}
 	f1 := FuncType{
 		Name:          "SampleComponent",
@@ -220,7 +220,7 @@ func TestGenerate(t *testing.T) {
 	}
 	e1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "error",
+		src:                 createAst(t, "error"),
 	}
 	f1 := FuncType{
 		Name:          "SampleComponent",
@@ -305,7 +305,7 @@ func TestGenerateSubPackage(t *testing.T) {
 	}
 	e1 := ParameterType{
 		DeclaredPackageName: "test",
-		Type:                "error",
+		src:                 createAst(t, "error"),
 	}
 	f1 := FuncType{
 		Name:          "SampleComponent",

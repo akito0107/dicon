@@ -117,7 +117,8 @@ func findConstructors(packageName string, from string, src interface{}, funcname
 				}
 				returns := []ParameterType{*NewParameterType(packageName, resultType.Type)}
 				if len(fun.Type.Results.List) == 2 {
-					returns = append(returns, ParameterType{DeclaredPackageName: packageName, Type: "error"})
+					eType := fun.Type.Results.List[1]
+					returns = append(returns, ParameterType{DeclaredPackageName: packageName, src: eType.Type})
 				}
 
 				funcs = append(funcs, FuncType{

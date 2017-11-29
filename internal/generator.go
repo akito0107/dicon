@@ -97,9 +97,9 @@ func (g *Generator) appendMethod(funcs []FuncType, _ string) {
 
 		dep := make([]string, 0, len(f.ArgumentTypes))
 		for i, a := range f.ArgumentTypes {
-			g.Printf("dep%d := d.%s()\n", i, a.SimpleName())
+			g.Printf("dep%d, err := d.%s()\n", i, a.SimpleName())
 			g.Printf("if err != nil {\n")
-			g.Printf("return nil, errors.Wrap(err, \"Resolve %s failed at DICON\")\n", a.Type)
+			g.Printf("return nil, errors.Wrap(err, \"Resolve %s failed at DICON\")\n", a.SimpleName())
 			g.Printf("}\n")
 			dep = append(dep, fmt.Sprintf("dep%d", i))
 		}
