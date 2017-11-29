@@ -99,14 +99,14 @@ func (g *Generator) appendMethod(funcs []FuncType, _ string) {
 		for i, a := range f.ArgumentTypes {
 			g.Printf("dep%d, err := d.%s()\n", i, a.SimpleName())
 			g.Printf("if err != nil {\n")
-			g.Printf("return nil, errors.Wrap(err, \"Resolve %s failed at DICON\")\n", a.SimpleName())
+			g.Printf("return nil, errors.Wrap(err, \"resolve %s failed at DICON\")\n", a.SimpleName())
 			g.Printf("}\n")
 			dep = append(dep, fmt.Sprintf("dep%d", i))
 		}
 
 		g.Printf("instance, err := %sNew%s(%s)\n", g.relativePackageName(f.PackageName), f.Name, strings.Join(dep, ", "))
 		g.Printf("if err != nil {\n")
-		g.Printf("return nil, errors.Wrap(err, \"Creation %s failed at DICON\")\n", f.Name)
+		g.Printf("return nil, errors.Wrap(err, \"creation %s failed at DICON\")\n", f.Name)
 		g.Printf("}\n")
 		g.Printf("d.store[\"%s\"] = instance\n", f.Name)
 		g.Printf("return instance, nil\n")

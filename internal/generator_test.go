@@ -66,11 +66,11 @@ func TestGenerator_appendMethods(t *testing.T) {
 	}
 	dep0, err := d.Dependency()
 	if err != nil {
-		return nil, errors.Wrap(err, "Resolve Dependency failed at DICON")
+		return nil, errors.Wrap(err, "resolve Dependency failed at DICON")
 	}
 	instance, err := NewSampleComponent(dep0)
 	if err != nil {
-		return nil, errors.Wrap(err, "Creation SampleComponent failed at DICON")
+		return nil, errors.Wrap(err, "creation SampleComponent failed at DICON")
 	}
 	d.store["SampleComponent"] = instance
 	return instance, nil
@@ -116,15 +116,15 @@ func TestGenerator_appendMethodsMultipleDependencies(t *testing.T) {
 	}
 	dep0, err := d.Dependency1()
 	if err != nil {
-		return nil, errors.Wrap(err, "Resolve Dependency1 failed at DICON")
+		return nil, errors.Wrap(err, "resolve Dependency1 failed at DICON")
 	}
 	dep1, err := d.Dependency2()
 	if err != nil {
-		return nil, errors.Wrap(err, "Resolve Dependency2 failed at DICON")
+		return nil, errors.Wrap(err, "resolve Dependency2 failed at DICON")
 	}
 	instance, err := NewSampleComponent(dep0, dep1)
 	if err != nil {
-		return nil, errors.Wrap(err, "Creation SampleComponent failed at DICON")
+		return nil, errors.Wrap(err, "creation SampleComponent failed at DICON")
 	}
 	d.store["SampleComponent"] = instance
 	return instance, nil
@@ -192,15 +192,15 @@ func TestGenerate(t *testing.T) {
 		}
 		dep0, err := d.Dependency1()
 		if err != nil {
-			return nil, errors.Wrap(err, "Resolve Dependency1 failed at DICON")
+			return nil, errors.Wrap(err, "resolve Dependency1 failed at DICON")
 		}
 		dep1, err := d.Dependency2()
 		if err != nil {
-			return nil, errors.Wrap(err, "Resolve Dependency2 failed at DICON")
+			return nil, errors.Wrap(err, "resolve Dependency2 failed at DICON")
 		}
 		instance, err := NewSampleComponent(dep0, dep1)
 		if err != nil {
-			return nil, errors.Wrap(err, "Creation SampleComponent failed at DICON")
+			return nil, errors.Wrap(err, "creation SampleComponent failed at DICON")
 		}
 		d.store["SampleComponent"] = instance
 		return instance, nil
@@ -277,15 +277,15 @@ func TestGenerateSubPackage(t *testing.T) {
 		}
 		dep0, err := d.Dependency1()
 		if err != nil {
-			return nil, errors.Wrap(err, "Resolve Dependency1 failed at DICON")
+			return nil, errors.Wrap(err, "resolve Dependency1 failed at DICON")
 		}
 		dep1, err := d.Dependency2()
 		if err != nil {
-			return nil, errors.Wrap(err, "Resolve Dependency2 failed at DICON")
+			return nil, errors.Wrap(err, "resolve Dependency2 failed at DICON")
 		}
 		instance, err := sample.NewSampleComponent(dep0, dep1)
 		if err != nil {
-			return nil, errors.Wrap(err, "Creation SampleComponent failed at DICON")
+			return nil, errors.Wrap(err, "creation SampleComponent failed at DICON")
 		}
 		d.store["SampleComponent"] = instance
 		return instance, nil

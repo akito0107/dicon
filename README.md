@@ -91,7 +91,7 @@ func (d *dicontainer) UserRepository() (UserRepository, error) {
 	}
 	instance, error := repository.NewUserRepository()
 	if err != nil {
-	    return nil, errors.Wrap(err, "Creation UserRepository failed at DICON")
+	    return nil, errors.Wrap(err, "creation UserRepository failed at DICON")
 	}
 	d.store["UserRepository"] = instance
 	return instance, nil
@@ -105,11 +105,11 @@ func (d *dicontainer) UserService() (UserService, error) {
 	}
 	dep0, err := d.UserRepository()
 	if err != nil {
-	    return nil, errors.Wrap(err, "Resolve UserRepository failed at DICON")
+	    return nil, errors.Wrap(err, "resolve UserRepository failed at DICON")
 	}
 	instance, err := service.NewUserService(dep0)
 	if err != nil {
-	    return nil, errors.Wrap(err, "Creation UserService failed at DICON")
+	    return nil, errors.Wrap(err, "creation UserService failed at DICON")
 	}
 	d.store["UserService"] = instance
 	return instance, nil
@@ -119,7 +119,7 @@ func (d *dicontainer) UserService() (UserService, error) {
 5. Use it!
 ```.go
 di := NewDIContainer()
-u := di.UserService()
+u, err := di.UserService()
 ....
 ```
 
