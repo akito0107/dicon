@@ -82,7 +82,9 @@ func runGenerate(pkgs []string, filename string, dry bool) error {
 		}
 		filenames := make([]string, 0, len(files))
 		for _, f := range files {
-			filenames = append(filenames, f.Name())
+			if strings.HasSuffix(f.Name(), ".go") {
+				filenames = append(filenames, f.Name())
+			}
 		}
 		pparser := internal.NewPackageParser(pkg)
 		ft, err := pparser.FindConstructors(filenames, funcnames)
@@ -123,7 +125,9 @@ func runGenerateMock(distPackage string, pkgs []string, filename string, dry boo
 		}
 		filenames := make([]string, 0, len(files))
 		for _, f := range files {
-			filenames = append(filenames, f.Name())
+			if strings.HasSuffix(f.Name(), ".go") {
+				filenames = append(filenames, f.Name())
+			}
 		}
 		pparser := internal.NewPackageParser(pkg)
 		m, err := pparser.FindDependencyInterfaces(filenames, funcnames)
@@ -150,7 +154,9 @@ func findDicon(pkgs []string) (*internal.InterfaceType, error) {
 		}
 		filenames := make([]string, 0, len(files))
 		for _, f := range files {
-			filenames = append(filenames, f.Name())
+			if strings.HasSuffix(f.Name(), ".go") {
+				filenames = append(filenames, f.Name())
+			}
 		}
 		pparser := internal.NewPackageParser(pkg)
 		res, err := pparser.FindDicon(filenames)
