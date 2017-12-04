@@ -10,11 +10,11 @@ type moreComponent struct {
 	o OtherComponent
 }
 
-func NewMoreComponent(s SampleComponent, o OtherComponent) MoreComponent {
+func NewMoreComponent(s SampleComponent, o OtherComponent) (MoreComponent, error) {
 	return &moreComponent{
 		s: s,
 		o: o,
-	}
+	}, nil
 }
 
 func (m *moreComponent) Exec() error {

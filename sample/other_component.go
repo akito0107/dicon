@@ -5,13 +5,13 @@ type OtherComponent interface {
 }
 
 type otherComponent struct {
-	s   SampleComponent
+	s SampleComponent
 }
 
-func NewOtherComponent(s SampleComponent) OtherComponent {
+func NewOtherComponent(s SampleComponent) (OtherComponent, error) {
 	return &otherComponent{
-		s:   s,
-	}
+		s: s,
+	}, ni
 }
 
 func (s *otherComponent) Exec() error {

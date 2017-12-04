@@ -11,7 +11,6 @@ import (
 
 type ParameterType struct {
 	DeclaredPackageName string
-	Type                string
 	src                 ast.Expr
 }
 

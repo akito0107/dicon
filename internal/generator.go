@@ -59,7 +59,10 @@ func (g *Generator) appendHeader(it *InterfaceType) {
 	g.Printf("\n")
 	g.Printf("package %s\n", g.PackageName)
 	g.Printf("\n")
-	g.Printf("import \"log\"\n")
+	g.Printf("import (\n")
+	g.Printf("\"log\"\n")
+	g.Printf("\"github.com/pkg/errors\"\n")
+	g.Printf(")\n")
 }
 
 func (g *Generator) appendStructDefs(it *InterfaceType) {
@@ -77,29 +80,36 @@ func (g *Generator) appendStructDefs(it *InterfaceType) {
 func (g *Generator) appendMethod(funcs []FuncType, _ string) {
 	for _, f := range funcs {
 		g.Printf("func (d *dicontainer) %s()", f.Name)
-		if len(f.ReturnTypes) != 1 {
-			log.Fatalf("Must be 1 instance but %d", len(f.ReturnTypes))
+		if len(f.ReturnTypes) != 2 {
+			log.Fatalf("Must be (instance, error) signature but %v", f.ReturnTypes)
 		}
 
 		returnType := f.ReturnTypes[0]
-		g.Printf("%s {\n", returnType.ConvertName(g.PackageName))
+		g.Printf("(%s, error) {\n", returnType.ConvertName(g.PackageName))
 
 		g.Printf("if i, ok := d.store[\"%s\"]; ok {\n", f.Name)
 		g.Printf("if instance, ok := i.(%s); ok {\n", returnType.ConvertName(g.PackageName))
-		g.Printf("return instance\n")
+		g.Printf("return instance, nil\n")
+
 		g.Printf("}\n")
-		g.Printf("log.Fatal(\"cached instance is polluted\")")
+		g.Printf("return nil, fmt.Errorf(\"invalid instance is cached %%v\", instance)\n")
 		g.Printf("}\n")
 
 		dep := make([]string, 0, len(f.ArgumentTypes))
 		for i, a := range f.ArgumentTypes {
-			g.Printf("dep%d := d.%s()\n", i, a.SimpleName())
+			g.Printf("dep%d, err := d.%s()\n", i, a.SimpleName())
+			g.Printf("if err != nil {\n")
+			g.Printf("return nil, errors.Wrap(err, \"resolve %s failed at DICON\")\n", a.SimpleName())
+			g.Printf("}\n")
 			dep = append(dep, fmt.Sprintf("dep%d", i))
 		}
 
-		g.Printf("instance := %sNew%s(%s)\n", g.relativePackageName(f.PackageName), f.Name, strings.Join(dep, ", "))
+		g.Printf("instance, err := %sNew%s(%s)\n", g.relativePackageName(f.PackageName), f.Name, strings.Join(dep, ", "))
+		g.Printf("if err != nil {\n")
+		g.Printf("return nil, errors.Wrap(err, \"creation %s failed at DICON\")\n", f.Name)
+		g.Printf("}\n")
 		g.Printf("d.store[\"%s\"] = instance\n", f.Name)
-		g.Printf("return instance")
+		g.Printf("return instance, nil\n")
 		g.Printf("}\n")
 	}
 }
