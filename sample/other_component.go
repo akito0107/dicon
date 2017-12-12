@@ -11,7 +11,7 @@ type otherComponent struct {
 func NewOtherComponent(s SampleComponent) (OtherComponent, error) {
 	return &otherComponent{
 		s: s,
-	}, ni
+	}, nil
 }
 
 func (s *otherComponent) Exec() error {
