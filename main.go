@@ -97,7 +97,6 @@ func runGenerate(pkgs []string, filename string, dry bool) error {
 	g := internal.NewGenerator()
 
 	if err := g.Generate(it, funcs); err != nil {
-		fmt.Println("debug")
 		return err
 	}
 
