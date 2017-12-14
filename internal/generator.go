@@ -88,11 +88,11 @@ func (g *Generator) appendMethod(funcs []FuncType, _ string) {
 		g.Printf("(%s, error) {\n", returnType.ConvertName(g.PackageName))
 
 		g.Printf("if i, ok := d.store[\"%s\"]; ok {\n", f.Name)
-		g.Printf("if instance, ok := i.(%s); ok {\n", returnType.ConvertName(g.PackageName))
-		g.Printf("return instance, nil\n")
-
-		g.Printf("}\n")
+		g.Printf("instance, ok := i.(%s)\n", returnType.ConvertName(g.PackageName))
+		g.Printf("if !ok {\n")
 		g.Printf("return nil, fmt.Errorf(\"invalid instance is cached %%v\", instance)\n")
+		g.Printf("}\n")
+		g.Printf("return instance, nil\n")
 		g.Printf("}\n")
 
 		dep := make([]string, 0, len(f.ArgumentTypes))

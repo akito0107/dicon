@@ -59,10 +59,11 @@ func TestGenerator_appendStructDef(t *testing.T) {
 func TestGenerator_appendMethods(t *testing.T) {
 	ex := pretty(t, []byte(`func (d *dicontainer) SampleComponent() (SampleComponent, error) {
 	if i, ok := d.store["SampleComponent"]; ok {
-		if instance, ok := i.(SampleComponent); ok {
-			return instance, nil
+		instance, ok := i.(SampleComponent)
+		if !ok {
+			return nil, fmt.Errorf("invalid instance is cached %v", instance)
 		}
-		return nil, fmt.Errorf("invalid instance is cached %v", instance)
+		return instance, nil
 	}
 	dep0, err := d.Dependency()
 	if err != nil {
@@ -109,10 +110,11 @@ func TestGenerator_appendMethods(t *testing.T) {
 func TestGenerator_appendMethodsMultipleDependencies(t *testing.T) {
 	ex := pretty(t, []byte(`func (d *dicontainer) SampleComponent() (SampleComponent, error) {
 	if i, ok := d.store["SampleComponent"]; ok {
-		if instance, ok := i.(SampleComponent); ok {
-			return instance, nil
+		instance, ok := i.(SampleComponent)
+		if !ok {
+			return nil, fmt.Errorf("invalid instance is cached %v", instance)
 		}
-		return nil, fmt.Errorf("invalid instance is cached %v", instance)
+		return instance, nil
 	}
 	dep0, err := d.Dependency1()
 	if err != nil {
@@ -185,10 +187,11 @@ func TestGenerate(t *testing.T) {
 
 	func (d *dicontainer) SampleComponent() (SampleComponent, error) {
 		if i, ok := d.store["SampleComponent"]; ok {
-			if instance, ok := i.(SampleComponent); ok {
-				return instance, nil
+			instance, ok := i.(SampleComponent)
+			if !ok {
+				return nil, fmt.Errorf("invalid instance is cached %v", instance)
 			}
-			return nil, fmt.Errorf("invalid instance is cached %v", instance)
+			return instance, nil
 		}
 		dep0, err := d.Dependency1()
 		if err != nil {
@@ -270,10 +273,11 @@ func TestGenerateSubPackage(t *testing.T) {
 
 	func (d *dicontainer) SampleComponent() (sample.SampleComponent, error) {
 		if i, ok := d.store["SampleComponent"]; ok {
-			if instance, ok := i.(sample.SampleComponent); ok {
-				return instance, nil
+			instance, ok := i.(sample.SampleComponent)
+			if !ok {
+				return nil, fmt.Errorf("invalid instance is cached %v", instance)
 			}
-			return nil, fmt.Errorf("invalid instance is cached %v", instance)
+			return instance, nil
 		}
 		dep0, err := d.Dependency1()
 		if err != nil {
