@@ -34,9 +34,6 @@ vendor
 # Sensitive or high-churn files:
 .idea/**/dataSources/
 .idea/**/dataSources.ids
-
-sample
-sample2
 .idea/**/dataSources.xml
 .idea/**/dataSources.local.xml
 .idea/**/sqlDataSources.xml
