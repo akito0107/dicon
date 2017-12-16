@@ -94,6 +94,10 @@ func runGenerate(pkgs []string, filename string, dry bool) error {
 		funcs = append(funcs, ft...)
 	}
 
+	if err := internal.DetectCyclicDependency(funcs); err != nil {
+		return err
+	}
+
 	g := internal.NewGenerator()
 
 	if err := g.Generate(it, funcs); err != nil {
