@@ -1,6 +1,11 @@
 package internal
 
-import "testing"
+import (
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"testing"
+)
 
 var TEST_FILE1 = `
 package main
@@ -187,5 +192,143 @@ func TestPackageParer_parseDependencyFuncs(t *testing.T) {
 
 	if ds[0].Funcs[0].ReturnTypes[0].ConvertName("test") != "error" {
 		t.Errorf("Return type must be error")
+	}
+}
+
+func TestPackageParser_findInterface(t *testing.T) {
+	parseSpecs := func(src string) []ast.Spec {
+		f, err := parser.ParseFile(token.NewFileSet(), "", "package test\n"+src, parser.AllErrors)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return f.Decls[0].(*ast.GenDecl).Specs
+	}
+
+	ts := []struct {
+		specs       []ast.Spec
+		packageName string
+
+		expected *InterfaceType
+	}{
+		{
+			specs: parseSpecs(`
+type A interface {
+	F(a, b int) (int, error)
+}
+`),
+			packageName: "test",
+
+			expected: &InterfaceType{
+				Name: "A",
+				Funcs: []FuncType{
+					{
+						Name: "F",
+						ArgumentTypes: []ParameterType{
+							{"", ast.NewIdent("int")},
+							{"", ast.NewIdent("int")},
+						},
+						ReturnTypes: []ParameterType{
+							{"", ast.NewIdent("int")},
+							{"", ast.NewIdent("error")},
+						},
+					},
+				},
+			},
+		},
+		{
+			specs: parseSpecs(`
+type B interface {
+	F(a int) error
+}
+`),
+			packageName: "test",
+
+			expected: &InterfaceType{
+				Name: "B",
+				Funcs: []FuncType{
+					{
+						Name: "F",
+						ArgumentTypes: []ParameterType{
+							{"", ast.NewIdent("int")},
+						},
+						ReturnTypes: []ParameterType{
+							{"", ast.NewIdent("error")},
+						},
+					},
+				},
+			},
+		},
+		{
+			specs: parseSpecs(`
+type C interface {
+	F() (w, h int)
+}
+`),
+			packageName: "test",
+
+			expected: &InterfaceType{
+				Name: "C",
+				Funcs: []FuncType{
+					{
+						Name:          "F",
+						ArgumentTypes: []ParameterType{},
+						ReturnTypes: []ParameterType{
+							{"", ast.NewIdent("int")},
+							{"", ast.NewIdent("int")},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range ts {
+		got, ok := findInterface(tc.packageName, tc.specs)
+		if ok != (tc.expected != nil) {
+			t.Errorf("unexpected result. expected: %v, but got: %v", tc.expected, got)
+			continue
+		}
+		if !ok {
+			continue
+		}
+
+		if got.Name != tc.expected.Name {
+			t.Errorf("unexpected name. expected: %v, but got: %v", tc.expected.Name, got.Name)
+		}
+		if len(got.Funcs) != len(tc.expected.Funcs) {
+			t.Errorf("unexpected len(Funcs). expected: %v, but got: %v", len(tc.expected.Funcs), len(got.Funcs))
+		} else {
+			for i := range got.Funcs {
+				if got.Funcs[i].Name != tc.expected.Funcs[i].Name {
+					t.Errorf("unexpected Funcs[%d].Name. expected: %v, but got: %v", i,
+						tc.expected.Funcs[i].Name, got.Funcs[i].Name)
+				}
+
+				if len(got.Funcs[i].ArgumentTypes) != len(tc.expected.Funcs[i].ArgumentTypes) {
+					t.Errorf("unexpected len(Funcs[%d].ArgumentTypes). expected: %v, but got: %v", i,
+						len(tc.expected.Funcs[i].ArgumentTypes), len(got.Funcs[i].ArgumentTypes))
+				} else {
+					for j := range got.Funcs[i].ArgumentTypes {
+						if got.Funcs[i].ArgumentTypes[j].SimpleName() != tc.expected.Funcs[i].ArgumentTypes[j].SimpleName() {
+							t.Errorf("unexpected Funcs[%d].ArgumentTypes[%d]. expected: %v, but got: %v", i, j,
+								tc.expected.Funcs[i].ArgumentTypes[j].SimpleName(),
+								got.Funcs[i].ArgumentTypes[j].SimpleName())
+						}
+					}
+				}
+				if len(got.Funcs[i].ReturnTypes) != len(tc.expected.Funcs[i].ReturnTypes) {
+					t.Errorf("unexpected len(Funcs[%d].ReturnTypes). expected: %v, but got: %v", i,
+						len(tc.expected.Funcs[i].ReturnTypes), len(got.Funcs[i].ReturnTypes))
+				} else {
+					for j := range got.Funcs[i].ReturnTypes {
+						if got.Funcs[i].ReturnTypes[j].SimpleName() != tc.expected.Funcs[i].ReturnTypes[j].SimpleName() {
+							t.Errorf("unexpected Funcs[%d].ReturnTypes[%d]. expected: %v, but got: %v", i, j,
+								tc.expected.Funcs[i].ReturnTypes[j].SimpleName(),
+								got.Funcs[i].ReturnTypes[j].SimpleName())
+						}
+					}
+				}
+			}
+		}
 	}
 }
