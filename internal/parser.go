@@ -19,10 +19,11 @@ type comments []comment
 type comment string
 
 type InterfaceType struct {
-	PackageName string
-	Comments    comments
-	Name        string
-	Funcs       []FuncType
+	PackageName    string
+	Comments       comments
+	Name           string
+	Funcs          []FuncType
+	DependPackages []Package
 }
 
 type FuncType struct {
@@ -31,6 +32,11 @@ type FuncType struct {
 	PackageName   string
 	Comments      comments
 	Name          string
+}
+
+type Package struct {
+	Name string
+	Path string
 }
 
 func NewPackageParser(pack string) *PackageParser {
@@ -141,6 +147,8 @@ func findDicon(packageName string, from string, src interface{}, annotation stri
 		return nil, err
 	}
 
+	deps := getDependencies(f)
+
 	var its []InterfaceType
 
 	pkg := f.Name.Name
@@ -159,6 +167,7 @@ func findDicon(packageName string, from string, src interface{}, annotation stri
 		}
 		it.Comments = comments
 		it.PackageName = pkg
+		it.DependPackages = deps
 		its = append(its, *it)
 
 		return true
@@ -247,6 +256,9 @@ func parseDependencyFuncs(packagename string, targetNames []string, from string,
 	if err != nil {
 		return nil, err
 	}
+
+	deps := getDependencies(f)
+
 	ast.Inspect(f, func(n ast.Node) bool {
 		g, ok := n.(*ast.GenDecl)
 		if !ok || g.Tok != token.TYPE {
@@ -256,6 +268,7 @@ func parseDependencyFuncs(packagename string, targetNames []string, from string,
 		if !ok || !contains(it.Name, targetNames) {
 			return true
 		}
+		it.DependPackages = deps
 		res = append(res, *it)
 		return true
 	})
@@ -269,4 +282,19 @@ func contains(s string, source []string) bool {
 		}
 	}
 	return false
+}
+
+func getDependencies(f *ast.File) []Package {
+	deps := make([]Package, 0, len(f.Imports))
+	for _, imp := range f.Imports {
+		name := ""
+		if imp.Name != nil {
+			name = imp.Name.Name
+		}
+		deps = append(deps, Package{
+			Name: name,
+			Path: imp.Path.Value,
+		})
+	}
+	return deps
 }
