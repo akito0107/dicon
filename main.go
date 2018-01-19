@@ -13,9 +13,20 @@ import (
 	"github.com/urfave/cli"
 )
 
+var (
+	version  = "master"
+	revision string
+)
+
 func main() {
+	cli.VersionPrinter = func(c *cli.Context) {
+		fmt.Printf("%s version=%s revision=%s\n", c.App.Name, c.App.Version, revision)
+	}
+
 	app := cli.NewApp()
+
 	app.Name = "dicon"
+	app.Version = version
 	app.Usage = "DICONtainer Generator"
 
 	app.Commands = []cli.Command{
