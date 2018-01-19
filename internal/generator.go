@@ -36,6 +36,8 @@ func (g *Generator) GenerateMock(it *InterfaceType, targets []InterfaceType) err
 		g.PackageName = it.PackageName
 	}
 	g.appendHeader(it)
+	g.appendImports(targets)
+
 	for _, i := range targets {
 		g.appendMockStruct(&i)
 	}
@@ -63,6 +65,21 @@ func (g *Generator) appendHeader(it *InterfaceType) {
 	g.Printf("\"log\"\n")
 	g.Printf("\"github.com/pkg/errors\"\n")
 	g.Printf(")\n")
+}
+
+func (g *Generator) appendImports(targets []InterfaceType) {
+	g.Printf("import (\n")
+	defer g.Printf(")\n")
+
+	imported := make(map[string]struct{})
+	for _, target := range targets {
+		for _, dep := range target.DependPackages {
+			if _, ok := imported[dep.Path]; !ok {
+				g.Printf("%s %s\n", dep.Name, dep.Path)
+				imported[dep.Path] = struct{}{}
+			}
+		}
+	}
 }
 
 func (g *Generator) appendStructDefs(it *InterfaceType) {
