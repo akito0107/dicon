@@ -45,12 +45,17 @@ func (g *Generator) GenerateMock(it *InterfaceType, targets []InterfaceType) err
 }
 
 func (g *Generator) Out(w io.Writer, filename string) error {
-	dist, err := imports.Process(filename, g.buf.Bytes(), &imports.Options{Comments: true})
-	if err != nil {
-		fmt.Printf("%s\n", g.buf.Bytes())
-		return err
+	src := g.buf.Bytes()
+	for i := 0; i < 2; i++ {
+		dist, err := imports.Process(filename, src, &imports.Options{Comments: true})
+		if err != nil {
+			fmt.Printf("%s\n")
+			return err
+		}
+		src = dist
 	}
-	if _, err := io.Copy(w, bytes.NewReader(dist)); err != nil {
+
+	if _, err := io.Copy(w, bytes.NewReader(src)); err != nil {
 		return err
 	}
 	return nil
