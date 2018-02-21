@@ -49,7 +49,6 @@ func (g *Generator) Out(w io.Writer, filename string) error {
 	for i := 0; i < 2; i++ {
 		dist, err := imports.Process(filename, src, &imports.Options{Comments: true})
 		if err != nil {
-			fmt.Printf("%s\n")
 			return err
 		}
 		src = dist
