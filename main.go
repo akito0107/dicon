@@ -87,17 +87,20 @@ func runGenerate(pkgs []string, filename string, dry bool) error {
 
 	var funcs []internal.FuncType
 	for _, pkg := range pkgs {
-		files, err := ioutil.ReadDir(filepath.Join(".", pkg))
+		pkgDir := filepath.Join(".", filepath.FromSlash(pkg))
+		files, err := ioutil.ReadDir(pkgDir)
 		if err != nil {
 			return err
 		}
 		filenames := make([]string, 0, len(files))
 		for _, f := range files {
 			if strings.HasSuffix(f.Name(), ".go") {
-				filenames = append(filenames, f.Name())
+				filenames = append(filenames, filepath.Join(pkgDir, f.Name()))
 			}
 		}
-		pparser := internal.NewPackageParser(pkg)
+
+		_, pkgName := filepath.Split(pkgDir)
+		pparser := internal.NewPackageParser(pkgName)
 		ft, err := pparser.FindConstructors(filenames, funcnames)
 		if err != nil {
 			return err
@@ -134,17 +137,20 @@ func runGenerateMock(distPackage string, pkgs []string, filename string, dry boo
 
 	var mockTargets []internal.InterfaceType
 	for _, pkg := range pkgs {
-		files, err := ioutil.ReadDir(filepath.Join(".", pkg))
+		pkgDir := filepath.Join(".", filepath.FromSlash(pkg))
+		files, err := ioutil.ReadDir(pkgDir)
 		if err != nil {
 			return err
 		}
 		filenames := make([]string, 0, len(files))
 		for _, f := range files {
 			if strings.HasSuffix(f.Name(), ".go") {
-				filenames = append(filenames, f.Name())
+				filenames = append(filenames, filepath.Join(pkgDir, f.Name()))
 			}
 		}
-		pparser := internal.NewPackageParser(pkg)
+
+		_, pkgName := filepath.Split(pkgDir)
+		pparser := internal.NewPackageParser(pkgName)
 		m, err := pparser.FindDependencyInterfaces(filenames, funcnames)
 		if err != nil {
 			return err
@@ -163,17 +169,21 @@ func runGenerateMock(distPackage string, pkgs []string, filename string, dry boo
 func findDicon(pkgs []string) (*internal.InterfaceType, error) {
 	var it *internal.InterfaceType
 	for _, pkg := range pkgs {
-		files, err := ioutil.ReadDir(filepath.Join(".", pkg))
+		pkgDir := filepath.Join(".", filepath.FromSlash(pkg))
+
+		files, err := ioutil.ReadDir(pkgDir)
 		if err != nil {
 			return nil, err
 		}
 		filenames := make([]string, 0, len(files))
 		for _, f := range files {
 			if strings.HasSuffix(f.Name(), ".go") {
-				filenames = append(filenames, f.Name())
+				filenames = append(filenames, filepath.Join(pkgDir, f.Name()))
 			}
 		}
-		pparser := internal.NewPackageParser(pkg)
+
+		_, pkgName := filepath.Split(pkgDir)
+		pparser := internal.NewPackageParser(pkgName)
 		res, err := pparser.FindDicon(filenames)
 		if err != nil {
 			return nil, err

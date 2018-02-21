@@ -5,7 +5,6 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"path/filepath"
 	"strings"
 
 	"github.com/k0kubun/pp"
@@ -48,7 +47,7 @@ func NewPackageParser(pack string) *PackageParser {
 func (p *PackageParser) FindDicon(filenames []string) (*InterfaceType, error) {
 	result := make([]InterfaceType, 0, len(filenames))
 	for _, filename := range filenames {
-		its, err := findDicon(p.PackageName, filepath.Join(p.PackageName, filename), nil, "+DICON")
+		its, err := findDicon(p.PackageName, filename, nil, "+DICON")
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +94,7 @@ func (p *PackageParser) FindDependencyInterfaces(filenames []string, targetNames
 }
 
 func findConstructors(packageName string, from string, src interface{}, funcnames []string) ([]FuncType, error) {
-	f, err := parser.ParseFile(token.NewFileSet(), filepath.Join(packageName, from), src, parser.ParseComments)
+	f, err := parser.ParseFile(token.NewFileSet(), from, src, parser.ParseComments)
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +251,7 @@ func findInterface(packageName string, specs []ast.Spec) (*InterfaceType, bool) 
 
 func parseDependencyFuncs(packagename string, targetNames []string, from string, src interface{}) ([]InterfaceType, error) {
 	var res []InterfaceType
-	f, err := parser.ParseFile(token.NewFileSet(), packagename+"/"+from, src, parser.ParseComments)
+	f, err := parser.ParseFile(token.NewFileSet(), from, src, parser.ParseComments)
 	if err != nil {
 		return nil, err
 	}
