@@ -3,6 +3,7 @@
 DICONtainer Generator for go.
 
 [![CircleCI](https://circleci.com/gh/akito0107/dicon.svg?style=svg)](https://circleci.com/gh/akito0107/dicon)
+[![Go Report Card](https://goreportcard.com/badge/github.com/akito0107/dicon)](https://goreportcard.com/report/github.com/akito0107/dicon)
 
 ## Getting Started
 
