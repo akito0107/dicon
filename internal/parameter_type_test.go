@@ -61,6 +61,10 @@ func TestParameterTypeConvertName(t *testing.T) {
 		{"func(a, b int) error", "func(a00 int, a01 int) error"},
 		{"func(a, b int) (int, int)", "func(a00 int, a01 int) (int, int)"},
 		{"func(a Sample, b test.Sample, c current.Sample) int", "func(a0 pack.Sample, a1 test.Sample, a2 Sample) int"},
+		{"func(fmt string, args ...interface{}) int", "func(a0 string, a1 ...interface{}) int"},
+		{"func(opts ...current.Option) int", "func(a0 ...Option) int"},
+		{"func(opts ...Option) int", "func(a0 ...pack.Option) int"},
+		{"func(opts ...test.Option) int", "func(a0 ...test.Option) int"},
 	}
 	for _, c := range cases {
 		ast, e := parser.ParseExpr(c.in)
