@@ -94,6 +94,8 @@ func convertName(declared, packageName string, expr ast.Expr) string {
 			ret = strings.Join(rets, "")
 		}
 		return "func" + arg + " " + ret
+	case *ast.Ellipsis:
+		return "..." + convertName(declared, packageName, ex.Elt)
 	default:
 		log.Fatalf("unsupported type %+v", expr)
 	}
