@@ -3,6 +3,7 @@ package internal
 import (
 	"bytes"
 	"fmt"
+	"go/ast"
 	"io"
 	"log"
 	"strings"
@@ -180,8 +181,12 @@ func (g *Generator) appendMockStruct(it *InterfaceType) {
 		}
 		g.Printf(" {\n")
 		var a []string
-		for i, _ := range ags {
-			a = append(a, fmt.Sprintf("a%d", i))
+		for i, at := range f.ArgumentTypes {
+			if _, ok := at.src.(*ast.Ellipsis); ok {
+				a = append(a, fmt.Sprintf("a%d...", i))
+			} else {
+				a = append(a, fmt.Sprintf("a%d", i))
+			}
 		}
 		g.Printf("return mk.%sMock(%s)\n", f.Name, strings.Join(a, ","))
 		g.Printf("}\n")
