@@ -509,7 +509,56 @@ func TestAppendMockStructMultipleFuncWithPackages(t *testing.T) {
 	}
 }
 
+func TestAppendMockStructVariadicArguments(t *testing.T) {
+	ex := pretty(t, []byte(`type TestInterfaceMock struct {
+		TestFunc1Mock func(a0 string, a1 ...interface{}) error
+	}
+
+	func NewTestInterfaceMock() *TestInterfaceMock {
+		return &TestInterfaceMock{}
+	}
+
+	func (mk *TestInterfaceMock) TestFunc1(a0 string, a1 ...interface{}) error {
+		return mk.TestFunc1Mock(a0, a1...)
+	}
+`))
+
+	p1 := ParameterType{
+		src: createAst(t, "string"),
+	}
+	p2 := ParameterType{
+		src: &ast.Ellipsis{
+			Elt: &ast.InterfaceType{},
+		},
+	}
+	r1 := ParameterType{
+		src: createAst(t, "error"),
+	}
+
+	f1 := FuncType{
+		Name:          "TestFunc1",
+		ArgumentTypes: []ParameterType{p1, p2},
+		ReturnTypes:   []ParameterType{r1},
+	}
+
+	it := &InterfaceType{
+		Name:        "TestInterface",
+		PackageName: "test",
+		Funcs:       []FuncType{f1},
+	}
+
+	g := Generator{
+		PackageName: "test",
+	}
+	g.appendMockStruct(it)
+	act := pretty(t, g.buf.Bytes())
+	if !bytes.Equal(act, ex) {
+		t.Errorf("Not Matched: \n%v", diff.LineDiff(string(ex), string(act)))
+	}
+}
+
 func createAst(t *testing.T, expr string) ast.Expr {
+	t.Helper()
 	ex, err := parser.ParseExpr(expr)
 	if err != nil {
 		t.Fatal(ex)
