@@ -1,5 +1,5 @@
 NAME := dicon
-VERSION := 0.0.1
+VERSION := $(shell git tag -l | tail -1)
 REVISION := $(shell git rev-parse --short HEAD)
 LDFLAGS := -X 'main.version=$(VERSION)' -X 'main.revision=$(REVISION)'
 PACKAGENAME := github.com/akito0107/dicon
