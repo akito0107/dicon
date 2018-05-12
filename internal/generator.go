@@ -28,7 +28,7 @@ func (g *Generator) Generate(it *InterfaceType, fs []FuncType) error {
 	g.PackageName = it.PackageName
 	g.appendHeader(it)
 	g.appendStructDefs(it)
-	g.appendMethod(fs, "")
+	g.appendMethod(fs)
 	return nil
 }
 
@@ -99,7 +99,7 @@ func (g *Generator) appendStructDefs(it *InterfaceType) {
 	g.Printf("\n")
 }
 
-func (g *Generator) appendMethod(funcs []FuncType, _ string) {
+func (g *Generator) appendMethod(funcs []FuncType) {
 	for _, f := range funcs {
 		g.Printf("func (d *dicontainer) %s()", f.Name)
 		if len(f.ReturnTypes) != 2 {
