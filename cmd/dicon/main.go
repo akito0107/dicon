@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/urfave/cli"
 	"github.com/akito0107/dicon"
+	"github.com/urfave/cli"
 )
 
 var (
@@ -112,7 +112,7 @@ func runGenerate(pkgs []string, filename string, dry bool) error {
 		return err
 	}
 
-	g := dicon.NewGenerator()
+	g := dicon.NewContainerGenerator()
 
 	if err := g.Generate(it, funcs); err != nil {
 		return err
@@ -158,7 +158,7 @@ func runGenerateMock(distPackage string, pkgs []string, filename string, dry boo
 		mockTargets = append(mockTargets, m...)
 	}
 
-	g := dicon.NewGenerator()
+	g := dicon.NewMockGenerator()
 	g.PackageName = distPackage
 	if err := g.GenerateMock(it, mockTargets); err != nil {
 		return err
@@ -197,7 +197,7 @@ func findDicon(pkgs []string) (*dicon.InterfaceType, error) {
 	return it, nil
 }
 
-func writeFile(g *dicon.Generator, targetPkg string, filename string, dry bool) error {
+func writeFile(g dicon.Outer, targetPkg string, filename string, dry bool) error {
 	name := filepath.Join(targetPkg, filename+".go")
 	var w io.Writer
 	if dry {

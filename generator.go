@@ -13,6 +13,10 @@ type Generator struct {
 	PackageName string
 }
 
+type Outer interface {
+	Out(w io.Writer, filename string) error
+}
+
 func (g *Generator) Printf(format string, args ...interface{}) {
 	fmt.Fprintf(&g.buf, format, args...)
 }
