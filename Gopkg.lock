@@ -26,12 +26,6 @@
   version = "v0.0.3"
 
 [[projects]]
-  name = "github.com/pkg/errors"
-  packages = ["."]
-  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
-  version = "v0.8.0"
-
-[[projects]]
   branch = "master"
   name = "github.com/sergi/go-diff"
   packages = ["diffmatchpatch"]
@@ -61,6 +55,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "dbc3a09d9e14ff5dca3b655009d9fdd3b8d37434bce516968c558b31e37788af"
+  inputs-digest = "2f31373b6354cc08df79339f1ce874825040c8541db68674e89b0e0df8994a4e"
   solver-name = "gps-cdcl"
   solver-version = 1

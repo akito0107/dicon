@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/akito0107/dicon/internal"
 	"github.com/urfave/cli"
+	"github.com/akito0107/dicon"
 )
 
 var (
@@ -85,7 +85,7 @@ func runGenerate(pkgs []string, filename string, dry bool) error {
 		funcnames = append(funcnames, fn.Name)
 	}
 
-	var funcs []internal.FuncType
+	var funcs []dicon.FuncType
 	for _, pkg := range pkgs {
 		pkgDir := filepath.Join(".", filepath.FromSlash(pkg))
 		files, err := ioutil.ReadDir(pkgDir)
@@ -100,7 +100,7 @@ func runGenerate(pkgs []string, filename string, dry bool) error {
 		}
 
 		_, pkgName := filepath.Split(pkgDir)
-		pparser := internal.NewPackageParser(pkgName)
+		pparser := dicon.NewPackageParser(pkgName)
 		ft, err := pparser.FindConstructors(filenames, funcnames)
 		if err != nil {
 			return err
@@ -108,11 +108,11 @@ func runGenerate(pkgs []string, filename string, dry bool) error {
 		funcs = append(funcs, ft...)
 	}
 
-	if err := internal.DetectCyclicDependency(funcs); err != nil {
+	if err := dicon.DetectCyclicDependency(funcs); err != nil {
 		return err
 	}
 
-	g := internal.NewGenerator()
+	g := dicon.NewGenerator()
 
 	if err := g.Generate(it, funcs); err != nil {
 		return err
@@ -135,7 +135,7 @@ func runGenerateMock(distPackage string, pkgs []string, filename string, dry boo
 		funcnames = append(funcnames, fn.Name)
 	}
 
-	var mockTargets []internal.InterfaceType
+	var mockTargets []dicon.InterfaceType
 	for _, pkg := range pkgs {
 		pkgDir := filepath.Join(".", filepath.FromSlash(pkg))
 		files, err := ioutil.ReadDir(pkgDir)
@@ -150,7 +150,7 @@ func runGenerateMock(distPackage string, pkgs []string, filename string, dry boo
 		}
 
 		_, pkgName := filepath.Split(pkgDir)
-		pparser := internal.NewPackageParser(pkgName)
+		pparser := dicon.NewPackageParser(pkgName)
 		m, err := pparser.FindDependencyInterfaces(filenames, funcnames)
 		if err != nil {
 			return err
@@ -158,7 +158,7 @@ func runGenerateMock(distPackage string, pkgs []string, filename string, dry boo
 		mockTargets = append(mockTargets, m...)
 	}
 
-	g := internal.NewGenerator()
+	g := dicon.NewGenerator()
 	g.PackageName = distPackage
 	if err := g.GenerateMock(it, mockTargets); err != nil {
 		return err
@@ -166,8 +166,8 @@ func runGenerateMock(distPackage string, pkgs []string, filename string, dry boo
 	return writeFile(g, distPackage, filename, dry)
 }
 
-func findDicon(pkgs []string) (*internal.InterfaceType, error) {
-	var it *internal.InterfaceType
+func findDicon(pkgs []string) (*dicon.InterfaceType, error) {
+	var it *dicon.InterfaceType
 	for _, pkg := range pkgs {
 		pkgDir := filepath.Join(".", filepath.FromSlash(pkg))
 
@@ -183,7 +183,7 @@ func findDicon(pkgs []string) (*internal.InterfaceType, error) {
 		}
 
 		_, pkgName := filepath.Split(pkgDir)
-		pparser := internal.NewPackageParser(pkgName)
+		pparser := dicon.NewPackageParser(pkgName)
 		res, err := pparser.FindDicon(filenames)
 		if err != nil {
 			return nil, err
@@ -197,7 +197,7 @@ func findDicon(pkgs []string) (*internal.InterfaceType, error) {
 	return it, nil
 }
 
-func writeFile(g *internal.Generator, targetPkg string, filename string, dry bool) error {
+func writeFile(g *dicon.Generator, targetPkg string, filename string, dry bool) error {
 	name := filepath.Join(targetPkg, filename+".go")
 	var w io.Writer
 	if dry {
