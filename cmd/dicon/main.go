@@ -100,8 +100,7 @@ func runGenerate(pkgs []string, filename string, dry bool) error {
 		}
 
 		_, pkgName := filepath.Split(pkgDir)
-		pparser := dicon.NewPackageParser(pkgName)
-		ft, err := pparser.FindConstructors(filenames, funcnames)
+		ft, err := dicon.FindConstructors(pkgName, filenames, funcnames)
 		if err != nil {
 			return err
 		}
@@ -150,8 +149,7 @@ func runGenerateMock(distPackage string, pkgs []string, filename string, dry boo
 		}
 
 		_, pkgName := filepath.Split(pkgDir)
-		pparser := dicon.NewPackageParser(pkgName)
-		m, err := pparser.FindDependencyInterfaces(filenames, funcnames)
+		m, err := dicon.FindDependencyInterfaces(pkgName, filenames, funcnames)
 		if err != nil {
 			return err
 		}
@@ -160,7 +158,7 @@ func runGenerateMock(distPackage string, pkgs []string, filename string, dry boo
 
 	g := dicon.NewMockGenerator()
 	g.PackageName = distPackage
-	if err := g.GenerateMock(it, mockTargets); err != nil {
+	if err := g.Generate(it, mockTargets); err != nil {
 		return err
 	}
 	return writeFile(g, distPackage, filename, dry)
@@ -183,8 +181,7 @@ func findDicon(pkgs []string) (*dicon.InterfaceType, error) {
 		}
 
 		_, pkgName := filepath.Split(pkgDir)
-		pparser := dicon.NewPackageParser(pkgName)
-		res, err := pparser.FindDicon(filenames)
+		res, err := dicon.FindDicon(pkgName, filenames)
 		if err != nil {
 			return nil, err
 		}

@@ -14,7 +14,7 @@ func NewMockGenerator() *MockGenerator {
 	return &MockGenerator{}
 }
 
-func (g *MockGenerator) GenerateMock(it *InterfaceType, targets []InterfaceType) error {
+func (g *MockGenerator) Generate(it *InterfaceType, targets []InterfaceType) error {
 	if g.PackageName == "" {
 		g.PackageName = it.PackageName
 	}
