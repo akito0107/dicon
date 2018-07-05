@@ -73,7 +73,7 @@ func TestMockGenerator_AppendMockStruct(t *testing.T) {
 	}
 
 	func (mk *TestInterfaceMock) TestFunc1(a0 Arg1) {
-		return mk.TestFunc1Mock(a0)
+		mk.TestFunc1Mock(a0)
 	}
 	func (mk *TestInterfaceMock) TestFunc2(a0 Arg1, a1 Arg2) (Ret1, Ret2) {
 		return mk.TestFunc2Mock(a0, a1)
@@ -138,7 +138,7 @@ func TestMockGenerator_AppendMockStruct(t *testing.T) {
 	}
 
 	func (mk *TestInterfaceMock) TestFunc1(a0 pak1.Arg1) {
-		return mk.TestFunc1Mock(a0)
+		mk.TestFunc1Mock(a0)
 	}
 	func (mk *TestInterfaceMock) TestFunc2(a0 pak1.Arg1, a1 Arg2) (Ret1, pak2.Ret2) {
 		return mk.TestFunc2Mock(a0, a1)

@@ -94,7 +94,10 @@ func (g *MockGenerator) AppendMockStruct(it *InterfaceType) {
 				a = append(a, fmt.Sprintf("a%d", i))
 			}
 		}
-		g.Printf("return mk.%sMock(%s)\n", f.Name, strings.Join(a, ","))
+		if len(f.ReturnTypes) > 0 {
+			g.Printf("return ")
+		}
+		g.Printf("mk.%sMock(%s)\n", f.Name, strings.Join(a, ","))
 		g.Printf("}\n")
 	}
 }
