@@ -10,16 +10,9 @@ import (
 	"github.com/k0kubun/pp"
 )
 
-type PackageParser struct {
-	PackageName string
-}
-
-type comments []comment
-type comment string
-
 type InterfaceType struct {
 	PackageName    string
-	Comments       comments
+	Comments       []string
 	Name           string
 	Funcs          []FuncType
 	DependPackages []Package
@@ -29,7 +22,7 @@ type FuncType struct {
 	ArgumentTypes []ParameterType
 	ReturnTypes   []ParameterType
 	PackageName   string
-	Comments      comments
+	Comments      []string
 	Name          string
 }
 
@@ -38,16 +31,10 @@ type Package struct {
 	Path string
 }
 
-func NewPackageParser(pack string) *PackageParser {
-	return &PackageParser{
-		PackageName: pack,
-	}
-}
-
-func (p *PackageParser) FindDicon(filenames []string) (*InterfaceType, error) {
+func FindDicon(packageName string, filenames []string) (*InterfaceType, error) {
 	result := make([]InterfaceType, 0, len(filenames))
 	for _, filename := range filenames {
-		its, err := findDicon(p.PackageName, filename, nil, "+DICON")
+		its, err := findDicon(packageName, filename, nil, "+DICON")
 		if err != nil {
 			return nil, err
 		}
@@ -65,11 +52,11 @@ func (p *PackageParser) FindDicon(filenames []string) (*InterfaceType, error) {
 	return &result[0], nil
 }
 
-func (p *PackageParser) FindConstructors(filenames []string, funcnames []string) ([]FuncType, error) {
+func FindConstructors(packageName string, filenames []string, funcnames []string) ([]FuncType, error) {
 	var result []FuncType
 
 	for _, f := range filenames {
-		r, err := findConstructors(p.PackageName, f, nil, funcnames)
+		r, err := findConstructors(packageName, f, nil, funcnames)
 		if err != nil {
 			return nil, err
 		}
@@ -79,11 +66,11 @@ func (p *PackageParser) FindConstructors(filenames []string, funcnames []string)
 	return result, nil
 }
 
-func (p *PackageParser) FindDependencyInterfaces(filenames []string, targetNames []string) ([]InterfaceType, error) {
+func FindDependencyInterfaces(packageName string, filenames []string, targetNames []string) ([]InterfaceType, error) {
 	var result []InterfaceType
 
 	for _, f := range filenames {
-		r, err := parseDependencyFuncs(p.PackageName, targetNames, f, nil)
+		r, err := parseDependencyFuncs(packageName, targetNames, f, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -175,19 +162,19 @@ func findDicon(packageName string, from string, src interface{}, annotation stri
 	return its, nil
 }
 
-func findComments(cs *ast.CommentGroup) comments {
-	res := comments{}
+func findComments(cs *ast.CommentGroup) []string {
+	var res []string
 	if cs == nil {
 		return res
 	}
 	for _, c := range cs.List {
 		t := strings.TrimSpace(strings.TrimLeft(c.Text, "//"))
-		res = append(res, comment(t))
+		res = append(res, t)
 	}
 	return res
 }
 
-func isAnnotated(cs comments, annotation string) bool {
+func isAnnotated(cs []string, annotation string) bool {
 	for _, c := range cs {
 		if strings.HasPrefix(string(c), annotation) {
 			return true
