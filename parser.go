@@ -18,6 +18,15 @@ type InterfaceType struct {
 	DependPackages []Package
 }
 
+func (i *InterfaceType) AggregateFuncName() []string {
+	funcnames := make([]string, 0, len(i.Funcs))
+	for _, fn := range i.Funcs {
+		funcnames = append(funcnames, fn.Name)
+	}
+
+	return funcnames
+}
+
 type FuncType struct {
 	ArgumentTypes []ParameterType
 	ReturnTypes   []ParameterType

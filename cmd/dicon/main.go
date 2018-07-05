@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"io"
 
 	"github.com/akito0107/dicon"
 	"github.com/urfave/cli"
@@ -38,7 +39,7 @@ func main() {
 				pkgs := strings.Split(c.String("pkg"), ",")
 				filename := c.String("out")
 				d := c.Bool("dry-run")
-				return runGenerate(pkgs, filename, d)
+				return generateContainer(pkgs, filename, d)
 			},
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "pkg, p", Value: "", Usage: "target package(s)."},
@@ -55,7 +56,7 @@ func main() {
 				filename := c.String("out")
 				distPackage := c.String("dist")
 				d := c.Bool("dry-run")
-				return runGenerateMock(distPackage, pkgs, filename, d)
+				return generateMock(distPackage, pkgs, filename, d)
 			},
 			Flags: []cli.Flag{
 				cli.StringFlag{Name: "pkg, p", Value: "", Usage: "target package(s)."},
@@ -71,35 +72,20 @@ func main() {
 	}
 }
 
-func runGenerate(pkgs []string, filename string, dry bool) error {
+func generateContainer(pkgs []string, filename string, dry bool) error {
 	it, err := findDicon(pkgs)
 	if err != nil {
 		return err
 	}
-	if it == nil {
-		return fmt.Errorf("+DICON not found")
-	}
-	targetPkg := it.PackageName
-	funcnames := make([]string, 0, len(it.Funcs))
-	for _, fn := range it.Funcs {
-		funcnames = append(funcnames, fn.Name)
-	}
+
+	funcnames := it.AggregateFuncName()
 
 	var funcs []dicon.FuncType
 	for _, pkg := range pkgs {
-		pkgDir := filepath.Join(".", filepath.FromSlash(pkg))
-		files, err := ioutil.ReadDir(pkgDir)
+		pkgName, filenames, err := readAllFilenames(pkg)
 		if err != nil {
 			return err
 		}
-		filenames := make([]string, 0, len(files))
-		for _, f := range files {
-			if strings.HasSuffix(f.Name(), ".go") {
-				filenames = append(filenames, filepath.Join(pkgDir, f.Name()))
-			}
-		}
-
-		_, pkgName := filepath.Split(pkgDir)
 		ft, err := dicon.FindConstructors(pkgName, filenames, funcnames)
 		if err != nil {
 			return err
@@ -112,43 +98,27 @@ func runGenerate(pkgs []string, filename string, dry bool) error {
 	}
 
 	g := dicon.NewContainerGenerator()
-
+	targetPkg := it.PackageName
 	if err := g.Generate(it, funcs); err != nil {
 		return err
 	}
-
 	return writeFile(g, targetPkg, filename, dry)
 }
 
-func runGenerateMock(distPackage string, pkgs []string, filename string, dry bool) error {
+func generateMock(distPackage string, pkgs []string, filename string, dry bool) error {
 	it, err := findDicon(pkgs)
 	if err != nil {
 		return err
 	}
-	if it == nil {
-		return fmt.Errorf("+DICON not found")
-	}
 
-	funcnames := make([]string, 0, len(it.Funcs))
-	for _, fn := range it.Funcs {
-		funcnames = append(funcnames, fn.Name)
-	}
+	funcnames := it.AggregateFuncName()
 
 	var mockTargets []dicon.InterfaceType
 	for _, pkg := range pkgs {
-		pkgDir := filepath.Join(".", filepath.FromSlash(pkg))
-		files, err := ioutil.ReadDir(pkgDir)
+		pkgName, filenames, err := readAllFilenames(pkg)
 		if err != nil {
 			return err
 		}
-		filenames := make([]string, 0, len(files))
-		for _, f := range files {
-			if strings.HasSuffix(f.Name(), ".go") {
-				filenames = append(filenames, filepath.Join(pkgDir, f.Name()))
-			}
-		}
-
-		_, pkgName := filepath.Split(pkgDir)
 		m, err := dicon.FindDependencyInterfaces(pkgName, filenames, funcnames)
 		if err != nil {
 			return err
@@ -165,7 +135,6 @@ func runGenerateMock(distPackage string, pkgs []string, filename string, dry boo
 }
 
 func findDicon(pkgs []string) (*dicon.InterfaceType, error) {
-	var it *dicon.InterfaceType
 	for _, pkg := range pkgs {
 		pkgDir := filepath.Join(".", filepath.FromSlash(pkg))
 
@@ -187,11 +156,27 @@ func findDicon(pkgs []string) (*dicon.InterfaceType, error) {
 		}
 
 		if res != nil {
-			it = res
-			break
+			return res, nil
 		}
 	}
-	return it, nil
+
+	return nil, fmt.Errorf("+DICON not found")
+}
+
+func readAllFilenames(pkg string) (string, []string, error) {
+	pkgDir := filepath.Join(".", filepath.FromSlash(pkg))
+	files, err := ioutil.ReadDir(pkgDir)
+	if err != nil {
+		return "", nil, err
+	}
+	filenames := make([]string, 0, len(files))
+	for _, f := range files {
+		if strings.HasSuffix(f.Name(), ".go") {
+			filenames = append(filenames, filepath.Join(pkgDir, f.Name()))
+		}
+	}
+	_, pkgName := filepath.Split(pkgDir)
+	return pkgName, filenames, nil
 }
 
 func writeFile(g dicon.Outer, targetPkg string, filename string, dry bool) error {
