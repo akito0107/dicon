@@ -224,12 +224,12 @@ type A interface {
 					{
 						Name: "F",
 						ArgumentTypes: []ParameterType{
-							{"", ast.NewIdent("int")},
-							{"", ast.NewIdent("int")},
+							{DeclaredPackageName: "", src: ast.NewIdent("int")},
+							{DeclaredPackageName: "", src: ast.NewIdent("int")},
 						},
 						ReturnTypes: []ParameterType{
-							{"", ast.NewIdent("int")},
-							{"", ast.NewIdent("error")},
+							{DeclaredPackageName: "", src: ast.NewIdent("int")},
+							{DeclaredPackageName: "", src: ast.NewIdent("error")},
 						},
 					},
 				},
@@ -249,10 +249,10 @@ type B interface {
 					{
 						Name: "F",
 						ArgumentTypes: []ParameterType{
-							{"", ast.NewIdent("int")},
+							{DeclaredPackageName: "", src: ast.NewIdent("int")},
 						},
 						ReturnTypes: []ParameterType{
-							{"", ast.NewIdent("error")},
+							{DeclaredPackageName: "", src: ast.NewIdent("error")},
 						},
 					},
 				},
@@ -273,8 +273,8 @@ type C interface {
 						Name:          "F",
 						ArgumentTypes: []ParameterType{},
 						ReturnTypes: []ParameterType{
-							{"", ast.NewIdent("int")},
-							{"", ast.NewIdent("int")},
+							{DeclaredPackageName: "", src: ast.NewIdent("int")},
+							{DeclaredPackageName: "", src: ast.NewIdent("int")},
 						},
 					},
 				},

@@ -51,7 +51,7 @@ func TestMockGenerator_AppendMockStruct(t *testing.T) {
 		}
 
 		g := MockGenerator{
-			Generator{
+			Generator: Generator{
 				PackageName: "test",
 			},
 		}
@@ -116,7 +116,7 @@ func TestMockGenerator_AppendMockStruct(t *testing.T) {
 		}
 
 		g := MockGenerator{
-			Generator{
+			Generator: Generator{
 				PackageName: "test",
 			},
 		}
@@ -181,7 +181,7 @@ func TestMockGenerator_AppendMockStruct(t *testing.T) {
 		}
 
 		g := MockGenerator{
-			Generator{
+			Generator: Generator{
 				PackageName: "test",
 			},
 		}
@@ -231,7 +231,7 @@ func TestMockGenerator_AppendMockStruct(t *testing.T) {
 		}
 
 		g := MockGenerator{
-			Generator{
+			Generator: Generator{
 				PackageName: "test",
 			},
 		}

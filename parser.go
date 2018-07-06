@@ -6,8 +6,6 @@ import (
 	"go/parser"
 	"go/token"
 	"strings"
-
-	"github.com/k0kubun/pp"
 )
 
 type InterfaceType struct {
@@ -109,7 +107,6 @@ func findConstructors(packageName string, from string, src interface{}, funcname
 			s := fmt.Sprintf("New%s", name)
 			if s == fun.Name.Name && name == fmt.Sprintf("%v", resultType.Type) {
 				if len(fun.Type.Results.List) == 2 && fmt.Sprintf("%v", fun.Type.Results.List[1].Type) != "error" {
-					pp.Println(fun.Type.Results.List[1])
 					return true
 				}
 				args := make([]ParameterType, 0, len(fun.Type.Params.List))

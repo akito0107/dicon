@@ -17,7 +17,7 @@ func TestContainerGenerator_AppendHeader(t *testing.T) {
 		"github.com/pkg/errors"
 	)
 `))
-	g := &ContainerGenerator{Generator{PackageName: "main"}}
+	g := &ContainerGenerator{Generator: Generator{PackageName: "main"}}
 	it := &InterfaceType{
 		PackageName: "main",
 	}
@@ -95,7 +95,7 @@ func TestContainerGenerator_AppendMethods(t *testing.T) {
 		}
 
 		it := &InterfaceType{Funcs: []FuncType{f1}}
-		g := &ContainerGenerator{Generator{PackageName: "test"}}
+		g := &ContainerGenerator{Generator: Generator{PackageName: "test"}}
 		g.AppendMethod(it.Funcs, it.Name)
 
 		act := pretty(t, g.buf.Bytes())
@@ -153,7 +153,7 @@ func TestContainerGenerator_AppendMethods(t *testing.T) {
 		}
 
 		it := &InterfaceType{Funcs: []FuncType{f1}}
-		g := &ContainerGenerator{Generator{PackageName: "test"}}
+		g := &ContainerGenerator{Generator: Generator{PackageName: "test"}}
 		g.AppendMethod(it.Funcs, "")
 
 		act := pretty(t, g.buf.Bytes())
@@ -237,11 +237,13 @@ func TestContainerGenerator_Generate(t *testing.T) {
 			PackageName: "test",
 			Funcs:       []FuncType{f1},
 		}
-		g := &ContainerGenerator{Generator{
+		g := &ContainerGenerator{Generator: Generator{
 			PackageName: "test",
 		}}
 
-		g.Generate(it, it.Funcs)
+		if err := g.Generate(it, it.Funcs); err != nil {
+			t.Fatal(err)
+		}
 
 		act := pretty(t, g.buf.Bytes())
 		if !bytes.Equal(act, ex) {
@@ -324,11 +326,13 @@ func TestContainerGenerator_Generate(t *testing.T) {
 			Funcs:       []FuncType{f1},
 		}
 		g := &ContainerGenerator{
-			Generator{
+			Generator: Generator{
 				PackageName: "test",
 			},
 		}
-		g.Generate(it, it.Funcs)
+		if err := g.Generate(it, it.Funcs); err != nil {
+			t.Fatal(err)
+		}
 
 		act := fixImports(t, g.buf.Bytes())
 		if !bytes.Equal(act, ex) {
