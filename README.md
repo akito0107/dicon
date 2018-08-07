@@ -1,5 +1,7 @@
 # dicon
 
+__[DEPRECATED] this repository has been moved to: [https://github.com/recruit-tech/dicon](https://github.com/recruit-tech/dicon)__
+
 DICONtainer Generator for go.
 
 [![CircleCI](https://circleci.com/gh/akito0107/dicon.svg?style=svg)](https://circleci.com/gh/akito0107/dicon)
